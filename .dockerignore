@@ -1,0 +1,72 @@
+# ── Secrets (must never be baked into the image) ─────────────────────
+.env
+.env.*
+!.env.example
+
+# ── Version control ──────────────────────────────────────────────────
+.git
+.gitignore
+.gitattributes
+
+# ── Python ───────────────────────────────────────────────────────────
+__pycache__
+**/__pycache__
+*.pyc
+*.pyo
+*.pyd
+*.egg
+*.egg-info
+.eggs
+build
+dist
+
+# ── Virtual environments ─────────────────────────────────────────────
+.venv
+venv
+env
+ENV
+
+# ── Caches & test artefacts ──────────────────────────────────────────
+.pytest_cache
+.mypy_cache
+.ruff_cache
+.coverage
+.coverage.*
+htmlcov
+
+# ── Local databases (image must start with a clean DB) ───────────────
+database/*.db
+database/*.sqlite
+database/*.sqlite3
+*.db
+*.sqlite
+*.sqlite3
+
+# ── Logs ─────────────────────────────────────────────────────────────
+*.log
+logs
+
+# ── FAISS index snapshots ────────────────────────────────────────────
+*.index
+*.faiss
+
+# ── Editor / IDE / OS junk ───────────────────────────────────────────
+.vscode
+.idea
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Docker files themselves ──────────────────────────────────────────
+Dockerfile
+.dockerignore
+docker-compose*.yml
+
+# ── Documentation that is not needed at runtime ──────────────────────
+README.md
+
+# ── Cursor / agent transcripts ───────────────────────────────────────
+terminals
+.cursor

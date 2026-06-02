@@ -1,0 +1,7 @@
+flask>=3.0.0
+python-dotenv>=1.0.0
+
+# AWS SDK – S3 uploads + Bedrock Knowledge Base (Retrieve/Generate + ingestion).
+# Credentials come from the default AWS credential chain
+# (AWS CLI config / environment / instance role).
+boto3>=1.34.0
