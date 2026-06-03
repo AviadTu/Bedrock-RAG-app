@@ -18,7 +18,6 @@ from __future__ import annotations
 import uuid
 
 from werkzeug.datastructures import FileStorage
-from werkzeug.utils import secure_filename
 
 from config import settings
 
@@ -37,22 +36,51 @@ def is_allowed(filename: str) -> bool:
     return _extension(filename) in settings.ALLOWED_UPLOAD_EXTENSIONS
 
 
+def _sanitise_for_s3_key(name: str) -> str:
+    """
+    Make a filename safe to embed in an S3 object key while preserving its
+    visible characters (including Hebrew and other Unicode letters).
+
+    Only path- and control-unsafe characters are removed:
+      • forward and back slashes (so the filename never spans S3 "folders")
+      • NUL and ASCII control characters (0x00–0x1F and 0x7F)
+      • leading / trailing whitespace
+    Spaces and Unicode (e.g. Hebrew) are intentionally preserved – S3 supports
+    them in object keys and the AWS Console displays them correctly.
+    """
+    stripped = "".join(
+        ch for ch in name
+        if ch not in ("/", "\\") and (ord(ch) >= 32 and ord(ch) != 127)
+    )
+    return stripped.strip()
+
+
 def build_s3_key(original_filename: str) -> str:
     """
-    Build a unique S3 key for an upload.
+    Build a unique, S3-safe key for an upload.
 
-    Format: ``<prefix><uuid4>__<safe_filename>`` e.g.
-    ``documents/3f9c…__report.pdf``.  The double-underscore separator makes
-    the original (sanitised) name trivially recoverable as a fallback when no
-    DB row exists for the key.
+    Format: ``<prefix><uuid4>__<visible_filename>`` e.g.
+    ``data/3f9c…__report.pdf`` or ``data/3f9c…__דוח.pdf``.
+
+    The uuid prefix guarantees uniqueness; the visible portion preserves the
+    original filename (Hebrew included) after stripping only path separators
+    and control characters.  If sanitisation leaves nothing usable, a
+    deterministic ``document_<uuid>`` fallback is used so the key is still
+    unique and keeps its extension.
+
+    The original (unmodified) filename is stored separately in the
+    uploaded_documents table by the caller, so this sanitisation never
+    affects what the UI displays.
     """
-    safe = secure_filename(original_filename)
-    # secure_filename can return '' for all-non-ASCII names (e.g. Hebrew).
-    # Fall back to preserving just the extension so the key is still useful.
-    if not safe:
-        ext = _extension(original_filename)
-        safe = f"upload.{ext}" if ext else "upload"
-    return f"{settings.S3_PREFIX}{uuid.uuid4().hex}__{safe}"
+    token = uuid.uuid4().hex
+    ext = _extension(original_filename)
+
+    safe_name = _sanitise_for_s3_key(original_filename)
+    if not safe_name:
+        # Pathological input (e.g. name was only slashes/control chars).
+        safe_name = f"document_{token}.{ext}" if ext else f"document_{token}"
+
+    return f"{settings.S3_PREFIX}{token}__{safe_name}"
 
 
 def save_upload(file_storage: FileStorage) -> tuple[str, str]:
