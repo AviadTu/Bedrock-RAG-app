@@ -60,8 +60,6 @@ Thumbs.db
 desktop.ini
 
 # ── Docker files themselves ──────────────────────────────────────────
-Dockerfile
-.dockerignore
 docker-compose*.yml
 
 # ── Documentation that is not needed at runtime ──────────────────────
