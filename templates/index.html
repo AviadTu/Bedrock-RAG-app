@@ -1,187 +1,1457 @@
 <!DOCTYPE html>
-<html lang="he" dir="rtl">
+<html dir="rtl" lang="he">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>צ'אט מאגר ידע</title>
-  <link rel="stylesheet" href="/static/css/style.css" />
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>עוזר חינוכי חכם</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Markdown parser (marked v9) + HTML sanitizer (DOMPurify v3) -->
+<script src="https://cdn.jsdelivr.net/npm/marked@9/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+          "on-primary": "#ffffff",
+          "primary-fixed": "#fff1f2",
+          "surface-container-low": "#fffaf4",
+          "on-primary-container": "#737474",
+          "secondary-container": "#fff1f2",
+          "tertiary-fixed-dim": "#cfc4c4",
+          "on-surface-variant": "#6b7280",
+          "surface": "#fdfcfb",
+          "on-surface": "#2d2d2d",
+          "surface-container": "#fffaf4",
+          "on-tertiary-container": "#7b7272",
+          "secondary-fixed-dim": "#cbc6be",
+          "secondary-fixed": "#fff1f2",
+          "surface-tint": "#800020",
+          "on-primary-fixed-variant": "#464746",
+          "surface-container-highest": "#ffe4e6",
+          "on-tertiary-fixed-variant": "#4c4545",
+          "tertiary": "#800020",
+          "surface-dim": "#f5f0eb",
+          "on-primary-fixed": "#1a1c1c",
+          "background": "#fdfcfb",
+          "on-secondary-fixed-variant": "#494641",
+          "on-secondary-container": "#800020",
+          "primary-fixed-dim": "#c7c6c5",
+          "primary-container": "#fffaf4",
+          "surface-bright": "#fdfcfb",
+          "tertiary-container": "#fffbff",
+          "primary": "#800020",
+          "on-tertiary-fixed": "#201a1b",
+          "on-background": "#2d2d2d",
+          "surface-container-lowest": "#ffffff",
+          "inverse-primary": "#c7c6c5",
+          "outline": "#d1d5db",
+          "tertiary-fixed": "#ece0e0",
+          "on-error": "#ffffff",
+          "surface-container-high": "#fff1f2",
+          "inverse-on-surface": "#f4f0ef",
+          "inverse-surface": "#313030",
+          "on-error-container": "#93000a",
+          "on-secondary": "#ffffff",
+          "secondary": "#800020",
+          "on-tertiary": "#ffffff",
+          "on-secondary-fixed": "#1d1b17",
+          "surface-variant": "#fff1f2",
+          "outline-variant": "#e5e7eb",
+          "error-container": "#ffdad6",
+          "error": "#ba1a1a"
+        },
+        "borderRadius": {
+          "DEFAULT": "0.25rem",
+          "lg": "0.5rem",
+          "xl": "0.75rem",
+          "full": "9999px"
+        },
+        "spacing": {
+          "max-content-width": "900px",
+          "inspector-width": "340px",
+          "margin-desktop": "40px",
+          "gutter": "24px",
+          "sidebar-width": "320px",
+          "margin-mobile": "16px",
+          "unit": "8px"
+        },
+        "fontFamily": {
+          "body-md": ["Assistant"],
+          "label-sm": ["Assistant"],
+          "headline-lg-mobile": ["Assistant"],
+          "headline-md": ["Assistant"],
+          "headline-lg": ["Assistant"],
+          "headline-xl": ["Assistant"],
+          "body-lg": ["Assistant"],
+          "label-md": ["Assistant"]
+        },
+        "fontSize": {
+          "body-md": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+          "label-sm": ["12px", {"lineHeight": "1.2", "fontWeight": "600"}],
+          "headline-lg-mobile": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+          "headline-md": ["24px", {"lineHeight": "1.4", "fontWeight": "500"}],
+          "headline-lg": ["32px", {"lineHeight": "1.3", "fontWeight": "600"}],
+          "headline-xl": ["40px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+          "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+          "label-md": ["14px", {"lineHeight": "1.2", "letterSpacing": "0.01em", "fontWeight": "500"}]
+        }
+      },
+    },
+  }
+</script>
+<style>
+  /* ── Responsive scaling ─────────────────────────────────────────
+     The original design targets a wide desktop.  On typical 1366–1600
+     viewports the page used to require the user to zoom the browser
+     out.  Scaling the root font-size with the viewport keeps every
+     rem-based Tailwind utility proportionally smaller so the entire
+     layout fits without manual zoom, while preserving the visual
+     hierarchy and proportions. */
+  html { font-size: 16px; }
+  @media (max-width: 1700px) { html { font-size: 15px; } }
+  @media (max-width: 1500px) { html { font-size: 14px; } }
+  @media (max-width: 1300px) { html { font-size: 13px; } }
+  body {
+    font-family: 'Assistant', sans-serif;
+    background-color: #fdfcfb;
+    overflow: hidden;
+  }
+  .glass-sidebar {
+    background: rgba(253, 252, 251, 0.7);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-color: rgba(128, 0, 32, 0.1);
+  }
+  .glass-panel {
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 241, 242, 0.8);
+  }
+  .ambient-glow {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: -1;
+    background:
+      radial-gradient(circle at 10% 20%, rgba(255, 241, 242, 0.4) 0%, transparent 40%),
+      radial-gradient(circle at 90% 80%, rgba(231, 226, 218, 0.3) 0%, transparent 40%),
+      radial-gradient(circle at 50% 50%, rgba(255, 251, 255, 0.5) 0%, transparent 60%);
+    animation: ambientMove 25s ease-in-out infinite alternate;
+  }
+  @keyframes ambientMove {
+    0%   { transform: scale(1)    translate(0,  0);  }
+    50%  { transform: scale(1.05) translate(2%, 1%); }
+    100% { transform: scale(1.1)  translate(-1%, -2%); }
+  }
+  .shimmer-text {
+    background: linear-gradient(120deg, #800020 25%, #D4AF37 40%, #E9C46A 50%, #D4AF37 60%, #800020 75%);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: elegantShimmer 6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  }
+  @keyframes elegantShimmer {
+    0%   { background-position: -100% center; }
+    100% { background-position:  100% center; }
+  }
+  .scrollbar-hide::-webkit-scrollbar { display: none; }
+  .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    vertical-align: middle;
+  }
+  .active-nav-item {
+    background-color: #fff1f2;
+    color: #800020;
+    font-weight: 700;
+    border-radius: 0.75rem;
+  }
+  /* Thinking dots animation */
+  @keyframes thinking-bounce {
+    0%, 80%, 100% { transform: translateY(0);    opacity: .4; }
+    40%           { transform: translateY(-6px); opacity: 1;  }
+  }
+  .thinking-dot {
+    width: .5rem; height: .5rem;
+    border-radius: 9999px;
+    background-color: #80002066;
+    animation: thinking-bounce 1.4s ease-in-out infinite;
+  }
+  .thinking-dot:nth-child(2) { animation-delay: .16s; }
+  .thinking-dot:nth-child(3) { animation-delay: .32s; }
+  /* Toast fade */
+  .toast-enter { opacity: 0; transform: translateY(8px); }
+  .toast-show   { opacity: 1; transform: translateY(0); transition: opacity .2s, transform .2s; }
+  .toast-leave  { opacity: 0; transform: translateY(8px); transition: opacity .25s, transform .25s; }
+  /* Drop-zone highlight */
+  .drop-active {
+    border-color: rgba(128, 0, 32, 0.5) !important;
+    background: rgba(255,255,255,0.6) !important;
+  }
+  /* Rename inline input */
+  .rename-input {
+    background: transparent;
+    border: none;
+    border-bottom: 1.5px solid rgba(128,0,32,.4);
+    outline: none;
+    width: 100%;
+    font-size: inherit;
+    font-weight: inherit;
+    color: inherit;
+    padding: 0;
+    line-height: inherit;
+  }
+  /* Auto-growing chat textarea (ChatGPT-style) */
+  #chat-input {
+    resize: none;
+    /* Match the 18px (text-lg) used in chat message bubbles. */
+    font-size: 1.125rem;
+    /* Increase min-height slightly so the taller text is not cramped
+       in its single-line rest state. */
+    min-height: 4rem;
+    max-height: 12rem;
+    overflow-y: auto;
+    line-height: 1.5;
+  }
+  #chat-input::-webkit-scrollbar { width: 6px; }
+  #chat-input::-webkit-scrollbar-thumb {
+    background: rgba(128, 0, 32, .15);
+    border-radius: 3px;
+  }
+  /* Markdown rendered inside assistant bubbles.
+     Scoped to .md-body so nothing leaks outside. */
+  .md-body p              { margin: 0 0 0.5rem 0; }
+  .md-body p:last-child   { margin-bottom: 0; }
+  .md-body strong         { font-weight: 700; }
+  .md-body em             { font-style: italic; }
+  .md-body ul, .md-body ol{ margin: 0.25rem 0 0.5rem 1.25rem; padding: 0; }
+  .md-body li             { margin-bottom: 0.2rem; }
+  .md-body ol             { list-style-type: decimal; }
+  .md-body ul             { list-style-type: disc; }
+
+  /* Source link – clickable filename chip */
+  .source-link {
+    cursor: pointer;
+    text-decoration: none;
+    transition: background-color .15s, color .15s;
+  }
+  .source-link:hover {
+    background-color: #fff1f2 !important;
+    color: #800020 !important;
+  }
+  /* Mirror the existing Material send icon so the arrow tip points left
+     while preserving its exact visual style (no icon swap).
+     `inline-block` keeps `vertical-align: middle` (set on
+     .material-symbols-outlined) active, which centres the glyph within
+     its line box.  The parent button's `inline-flex items-center
+     justify-center` then centres that inline-block both axes. */
+  .send-icon-mirrored {
+    transform: scaleX(-1);
+    display: inline-block;
+    line-height: 1;
+    font-size: 24px;
+  }
+  /* Send button positioning:
+     Default (single-line): CSS guarantees pixel-accurate vertical
+     centering with top:50% + translateY(-50%), independent of any rem
+     or root-font-size variation and with no JS timing dependency.
+     Multi-line (class added by JS): switch to bottom-anchoring so the
+     button tracks the last typed line. */
+  #btn-send {
+    top: 50%;
+    transform: translateY(-50%);
+    transition-property: box-shadow, filter, opacity;
+  }
+  #btn-send.btn-send-multiline {
+    top: auto;
+    bottom: 8px;
+    transform: none;
+  }
+</style>
 </head>
-<body>
+<body class="flex h-screen w-full text-on-surface bg-surface-bright">
+
+<!-- Ambient background -->
+<div class="ambient-glow"></div>
 
 <!-- ══════════════════════════════════════════════════════════
-     Sidebar
-═══════════════════════════════════════════════════════════ -->
-<aside class="sidebar" id="sidebar">
-  <div class="sidebar-header">
-    <div class="logo">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
-           stroke="currentColor" stroke-width="2" stroke-linecap="round"
-           stroke-linejoin="round">
-        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-      </svg>
-      <span>צ'אט מאגר ידע</span>
+     RIGHT SIDEBAR — Document Repository
+     ══════════════════════════════════════════════════════════ -->
+<aside class="fixed top-0 right-0 h-screen w-sidebar-width z-40 border-l glass-sidebar flex flex-col p-6 gap-5 rtl overflow-y-auto scrollbar-hide shadow-xl">
+  <!-- Header -->
+  <div class="flex items-center gap-4 mb-1">
+    <div class="p-2 bg-primary/5 rounded-xl flex-shrink-0">
+      <span class="material-symbols-outlined text-primary text-3xl">folder_managed</span>
+    </div>
+    <div class="min-w-0">
+      <h2 class="font-headline-md text-headline-md text-primary tracking-tight leading-tight">מאגר המסמכים</h2>
+      <p class="font-label-sm text-label-sm text-on-surface-variant/80 mt-0.5">החומרים הפדגוגיים שלך</p>
     </div>
   </div>
 
-  <button class="btn-new-chat" id="btn-new-chat">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-         stroke="currentColor" stroke-width="2.5">
-      <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-    </svg>
-    צ'אט חדש
-  </button>
-
-  <button class="btn-new-chat" id="btn-upload">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-         stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
-         stroke-linejoin="round">
-      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-      <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
-    </svg>
-    העלאת מסמכים
-  </button>
-  <input type="file" id="file-input" multiple accept=".txt,.pdf,.docx"
-         style="display:none" />
-  <div class="upload-status" id="upload-status" style="display:none"></div>
-
-  <div class="sidebar-section-title">מצב</div>
-  <div class="status-card" id="status-card">
-    <div class="status-dot" id="status-dot"></div>
-    <span id="status-label">בודק…</span>
+  <!-- Drag & Drop Zone -->
+  <div id="drop-zone"
+       class="border-2 border-dashed border-primary/10 rounded-2xl p-6 flex flex-col items-center justify-center gap-2 bg-white/30 hover:bg-white/50 hover:border-primary/30 transition-all cursor-pointer group shadow-inner"
+       role="button" aria-label="העלאת מסמכים">
+    <span class="material-symbols-outlined text-5xl text-primary/40 group-hover:scale-110 group-hover:text-primary transition-all">cloud_upload</span>
+    <span class="font-label-md text-label-md text-on-surface-variant font-medium">גרור מסמכים לכאן</span>
+    <div id="drop-zone-status" class="hidden text-xs font-medium text-primary/70 mt-1 min-h-[1rem]"></div>
+    <button id="btn-upload"
+            class="mt-2 bg-primary text-on-primary px-5 py-2 rounded-xl font-label-md text-label-md hover:shadow-lg hover:brightness-110 transition-all"
+            type="button">
+      העלאת מסמך
+    </button>
   </div>
-  <div class="progress-bar-wrap" id="progress-wrap" style="display:none">
-    <div class="progress-bar-inner" id="progress-bar"></div>
-  </div>
+  <input type="file" id="file-input" multiple accept=".txt,.pdf,.docx" class="hidden" aria-hidden="true">
 
-  <div class="sidebar-section-title" style="margin-top:auto">שיחה</div>
-  <div class="session-info">
-    <span>הודעות: </span><span id="msg-count">0</span>
+  <!-- Document List -->
+  <div id="document-list" class="flex flex-col gap-3 flex-1 min-h-0">
+    <!-- Populated dynamically by JS -->
   </div>
 </aside>
 
 <!-- ══════════════════════════════════════════════════════════
-     Main
-═══════════════════════════════════════════════════════════ -->
-<main class="main">
+     MAIN CANVAS — Chat
+     ══════════════════════════════════════════════════════════ -->
+<main class="flex-1 flex flex-col items-center mr-sidebar-width ml-sidebar-width h-full relative overflow-hidden">
 
-  <!-- Top bar -->
-  <header class="topbar">
-    <button class="btn-toggle-sidebar" id="btn-toggle-sidebar" aria-label="הצג/הסתר סרגל צד">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-           stroke="currentColor" stroke-width="2">
-        <line x1="3" y1="6" x2="21" y2="6"/>
-        <line x1="3" y1="12" x2="21" y2="12"/>
-        <line x1="3" y1="18" x2="21" y2="18"/>
-      </svg>
-    </button>
-    <span class="topbar-title">עוזר מאגר הידע</span>
-    <span class="topbar-model" id="topbar-model">Amazon Bedrock</span>
+  <!-- Top App Bar -->
+  <header class="w-full h-28 flex justify-center items-center px-10 bg-surface/30 backdrop-blur-md sticky top-0 z-30 border-b border-primary/5 flex-shrink-0">
+    <!-- Title (icons now live at the top-left corner of the page,
+         see <div id="top-left-actions"> below the closing main). -->
+    <div class="flex flex-col items-center justify-center text-center">
+      <h1 class="font-headline-xl text-5xl md:text-6xl xl:text-7xl font-extrabold shimmer-text leading-tight text-center whitespace-nowrap">עוזר חינוכי חכם</h1>
+      <p class="text-base md:text-lg text-on-surface-variant/70 mt-1 font-medium">שאל, התאם ושפר מערכי שיעור בקלות</p>
+    </div>
   </header>
 
-  <!-- Messages -->
-  <section class="messages" id="messages" role="log" aria-live="polite">
+  <!-- Scrollable Chat Area -->
+  <div id="chat-area"
+       class="w-full flex-1 flex flex-col p-8 gap-6 overflow-y-auto scrollbar-hide pb-44 max-w-4xl"
+       aria-live="polite" aria-label="אזור השיחה">
 
-    <!-- Welcome card shown on first load -->
-    <div class="welcome" id="welcome">
-      <div class="welcome-icon">
-        <svg width="40" height="40" viewBox="0 0 24 24" fill="none"
-             stroke="currentColor" stroke-width="1.5">
-          <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-          <path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
-        </svg>
+    <!-- Welcome state — visible when no messages -->
+    <div id="welcome-state" class="flex flex-col items-center justify-center flex-1 gap-6 py-12 text-center select-none">
+      <div class="w-20 h-20 rounded-2xl bg-secondary-container flex items-center justify-center shadow-md">
+        <span class="material-symbols-outlined text-5xl text-primary" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
       </div>
-      <h2>שאלו את מאגר הידע</h2>
-      <p>
-        הקלידו שאלה למטה. העוזר מאחזר את הקטעים הרלוונטיים מהמסמכים שלכם
-        ומחזיר תשובה מבוססת מקורות.
-      </p>
-      <div class="welcome-chips">
-        <button class="chip" data-q="על מה עוסק מאגר הידע הזה?">על מה זה?</button>
-        <button class="chip" data-q="סכם את הנושאים המרכזיים.">נושאים מרכזיים</button>
-        <button class="chip" data-q="מהם הממצאים העיקריים?">ממצאים עיקריים</button>
+      <div>
+        <h3 class="font-headline-md text-headline-md text-primary mb-2">שלום! איך אוכל לעזור?</h3>
+        <p class="text-on-surface-variant/70 font-label-md max-w-xs mx-auto">שאל כל שאלה הקשורה למסמכים שהעלית למאגר</p>
       </div>
     </div>
 
-  </section>
+    <!-- Message list — populated by JS -->
+    <div id="chat-messages" class="flex flex-col gap-8"></div>
+  </div>
 
-  <!-- Input area -->
-  <footer class="input-area">
-    <div class="input-wrap">
-      <textarea
-        id="user-input"
-        rows="1"
-        placeholder="שאלו כל דבר על המסמכים שלכם…"
-        aria-label="תיבת הודעה"
-      ></textarea>
-      <button class="btn-send" id="btn-send" aria-label="שלח">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-             stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
-             stroke-linejoin="round">
-          <line x1="22" y1="2" x2="11" y2="13"/>
-          <polygon points="22 2 15 22 11 13 2 9 22 2"/>
-        </svg>
-      </button>
+  <!-- Fixed Input Section -->
+  <div class="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-surface via-surface/98 to-transparent pointer-events-none">
+    <div class="mx-auto space-y-4 max-w-4xl pointer-events-auto">
+      <!-- Suggestion Chips -->
+      <div id="suggestion-chips" class="flex flex-wrap justify-center gap-3">
+        <button data-suggestion="הפק מערך שיעור מפורט על המהפכה התעשייתית"
+                class="suggestion-chip bg-white/80 backdrop-blur border border-primary/10 px-4 py-2 rounded-full font-label-md text-label-md text-primary hover:bg-primary-fixed hover:border-primary/30 transition-all shadow-sm hover:shadow-md">
+          ✨ הפק מערך שיעור על המהפכה התעשייתית
+        </button>
+        <button data-suggestion="סכם את כל המסמכים שהעליתי"
+                class="suggestion-chip bg-white/80 backdrop-blur border border-primary/10 px-4 py-2 rounded-full font-label-md text-label-md text-primary hover:bg-primary-fixed hover:border-primary/30 transition-all shadow-sm hover:shadow-md">
+          📚 סכם את המסמכים שהעליתי
+        </button>
+        <button data-suggestion="הצע שאלות מבחן מהחומר הנלמד"
+                class="suggestion-chip bg-white/80 backdrop-blur border border-primary/10 px-4 py-2 rounded-full font-label-md text-label-md text-primary hover:bg-primary-fixed hover:border-primary/30 transition-all shadow-sm hover:shadow-md">
+          📝 הצע שאלות למבחן
+        </button>
+      </div>
+      <!-- Text Input -->
+      <div class="relative group">
+        <div class="absolute top-5 right-5 flex items-center pointer-events-none">
+          <span class="material-symbols-outlined text-primary/40 group-focus-within:text-primary transition-colors">chat_bubble</span>
+        </div>
+        <textarea id="chat-input"
+                  rows="1"
+                  class="w-full bg-white border-0 ring-1 ring-primary/10 focus:ring-2 focus:ring-primary/40 rounded-2xl py-4 pr-14 pl-16 font-body-md shadow-2xl transition-all placeholder:text-on-surface-variant/50"
+                  placeholder="הקלד כאן את שאלתך..."
+                  autocomplete="off"
+                  aria-label="הקלד שאלה"></textarea>
+        <button id="btn-send"
+                class="absolute left-2.5 w-12 h-12 p-0 bg-primary text-on-primary rounded-xl inline-flex items-center justify-center hover:shadow-lg hover:brightness-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                type="button" aria-label="שלח">
+          <span class="material-symbols-outlined send-icon-mirrored">send</span>
+        </button>
+      </div>
     </div>
-    <p class="input-hint">
-      התשובות מבוססות על המסמכים שלכם · מופעל על ידי Amazon Bedrock
-    </p>
-  </footer>
-
+  </div>
 </main>
 
 <!-- ══════════════════════════════════════════════════════════
-     Templates (cloned by JS, never shown directly)
-═══════════════════════════════════════════════════════════ -->
+     TOP-LEFT FLOATING ACTIONS — Settings / Notifications / Avatar
+     Positioned in the upper-left corner of the page (above the
+     conversation history sidebar) so it never collides with the
+     centred title.  `dir="ltr"` keeps the visible left-to-right
+     order: settings, notifications, avatar.
+     ══════════════════════════════════════════════════════════ -->
+<div id="top-left-actions"
+     dir="ltr"
+     class="fixed top-4 left-4 z-50 flex items-center gap-3 bg-white/60 backdrop-blur-md rounded-full px-3 py-2 shadow-md border border-primary/10">
+  <button class="w-10 h-10 flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors hover:bg-white/70 rounded-full"
+          aria-label="הגדרות" title="הגדרות" type="button">
+    <span class="material-symbols-outlined">settings</span>
+  </button>
+  <button class="w-10 h-10 flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors hover:bg-white/70 rounded-full"
+          aria-label="התראות" title="התראות" type="button">
+    <span class="material-symbols-outlined">notifications</span>
+  </button>
+  <div class="relative w-10 h-10 flex-shrink-0">
+    <img alt="פרופיל" class="w-10 h-10 rounded-full object-cover ring-2 ring-white shadow-md"
+         src="https://lh3.googleusercontent.com/aida-public/AB6AXuDbRg7qwR-OhSl2JhtA3TGsFnc1-ouYAcK1d7YSQ6Zw7IEj35il_fnLiq-BgeYLnvaXhViHqXdWoJQO0tYxZuhM8bWVM5SfMr-yP3vilo-B78h6NVCrKhunvQ0-O0ZcIwVpWSJ-RlCJ1qYFra3LmO1Zw5EHqGpQi8_Xib5rhSP2FczrYPCJUbbAVpn7C31JfRwExljWDLlEDS-BTtxjnJrRm_MlfoPxbPlvoOHcAcbgYB-vF9eS7086HQ3Xvtb3Hx_8OJce7W4MbgY"/>
+    <div class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
+  </div>
+</div>
 
-<!-- User message bubble -->
-<template id="tpl-user">
-  <div class="message message--user">
-    <div class="bubble bubble--user">
-      <p class="msg-text"></p>
+<!-- ══════════════════════════════════════════════════════════
+     LEFT SIDEBAR — Conversation History
+     ══════════════════════════════════════════════════════════ -->
+<aside class="fixed top-0 left-0 h-screen w-sidebar-width z-40 border-r glass-sidebar flex flex-col p-6 pt-20 gap-5 overflow-y-auto scrollbar-hide shadow-xl">
+  <!-- Header -->
+  <div class="flex items-center gap-4 mb-1 rtl">
+    <div class="p-2 bg-primary/5 rounded-xl flex-shrink-0">
+      <span class="material-symbols-outlined text-primary text-3xl">history_edu</span>
+    </div>
+    <div class="min-w-0">
+      <h2 class="font-headline-md text-headline-md text-primary tracking-tight leading-tight">היסטוריית שיחות</h2>
+      <p class="font-label-sm text-label-sm text-on-surface-variant/80 mt-0.5">כל המחשבות ששמרת</p>
     </div>
   </div>
-</template>
 
-<!-- Assistant message bubble -->
-<template id="tpl-assistant">
-  <div class="message message--assistant">
-    <div class="avatar">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-           stroke="currentColor" stroke-width="2">
-        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-      </svg>
+  <!-- New Chat Button -->
+  <button id="btn-new-chat"
+          class="rtl w-full bg-primary text-on-primary p-4 rounded-xl flex items-center justify-center gap-3 font-bold shadow-lg hover:shadow-2xl hover:brightness-110 hover:-translate-y-0.5 transition-all duration-300 active:scale-95 ring-1 ring-white/20"
+          type="button">
+    <span class="material-symbols-outlined">add_circle</span>
+    שיחה חדשה
+  </button>
+
+  <!-- Search -->
+  <div class="relative rtl">
+    <span class="absolute right-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-on-surface-variant/60 text-lg pointer-events-none">search</span>
+    <input id="search-sessions"
+           class="w-full bg-white/50 border-0 ring-1 ring-primary/10 rounded-xl py-3 pr-12 pl-4 text-sm focus:ring-primary/40 focus:bg-white transition-all"
+           placeholder="חיפוש שיחות..."
+           type="search"
+           aria-label="חיפוש שיחות"/>
+  </div>
+
+  <!-- Conversation List -->
+  <div id="session-list" class="flex flex-col gap-2 rtl flex-1 min-h-0 overflow-y-auto scrollbar-hide -mx-1 px-1">
+    <!-- Populated dynamically by JS -->
+  </div>
+
+  <!-- Footer Actions -->
+  <div class="mt-auto flex flex-col gap-3 pt-5 border-t border-primary/10 rtl flex-shrink-0">
+    <!-- Help is UI-only; no backend support currently -->
+    <button class="flex items-center gap-3 p-3 text-on-surface-variant hover:bg-primary-fixed hover:text-primary rounded-xl transition-all font-medium"
+            title="עזרה ותמיכה (בקרוב)" disabled
+            style="opacity:.6;cursor:default;">
+      <span class="material-symbols-outlined">help_center</span>
+      <span class="font-label-md">עזרה ותמיכה</span>
+    </button>
+    <button id="btn-logout"
+            class="flex items-center gap-3 p-3 text-rose-600 hover:bg-rose-50 rounded-xl transition-all font-medium"
+            type="button"
+            title="התנתקות מהמערכת">
+      <span class="material-symbols-outlined">logout</span>
+      <span class="font-label-md">התנתקות מהמערכת</span>
+    </button>
+  </div>
+</aside>
+
+<!-- ══════════════════════════════════════════════════════════
+     TOAST CONTAINER
+     ══════════════════════════════════════════════════════════ -->
+<div id="toast-container"
+     class="fixed bottom-6 right-1/2 translate-x-1/2 z-[200] flex flex-col gap-2 items-center pointer-events-none"
+     aria-live="assertive"></div>
+
+<!-- ══════════════════════════════════════════════════════════
+     DELETE CONFIRMATION MODAL
+     ══════════════════════════════════════════════════════════ -->
+<div id="confirm-modal"
+     class="hidden fixed inset-0 z-[300] flex items-center justify-center bg-black/30 backdrop-blur-sm"
+     role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+  <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full mx-4 border border-primary/10">
+    <h3 id="confirm-title" class="font-headline-md text-headline-md text-on-surface mb-2"></h3>
+    <p id="confirm-body" class="text-on-surface-variant font-label-md mb-6"></p>
+    <div class="flex gap-3 justify-end rtl">
+      <button id="confirm-cancel"
+              class="px-5 py-2.5 rounded-xl font-label-md text-on-surface-variant hover:bg-surface-dim transition-all"
+              type="button">ביטול</button>
+      <button id="confirm-ok"
+              class="px-5 py-2.5 rounded-xl font-label-md bg-error text-on-error hover:brightness-110 transition-all"
+              type="button">מחק</button>
     </div>
-    <div class="bubble bubble--assistant">
-      <p class="msg-text"></p>
-      <div class="sources" style="display:none">
-        <button class="sources-toggle" aria-expanded="false">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
-               stroke="currentColor" stroke-width="2.5">
-            <polyline points="6 9 12 15 18 9"/>
-          </svg>
-          <span class="sources-label">מקורות</span>
+  </div>
+</div>
+
+<script>
+{% raw %}
+"use strict";
+
+// ═══════════════════════════════════════════════════════════════
+// CONSTANTS & STATE
+// ═══════════════════════════════════════════════════════════════
+const STORAGE_KEY     = 'edu_rag_v2_sessions';
+// Per-tab flag.  Set as soon as the user enters an active conversation
+// (creates one, selects one, or sends the first message) and read on
+// page load: a *refresh* of an active tab restores that conversation,
+// while a *new tab / new visit* (where sessionStorage is empty) opens
+// to a clean welcome state without auto-loading anything.
+const ACTIVE_FLAG_KEY = 'edu_rag_v2_active';
+const MAX_SESSIONS    = 30;
+
+function markActive()   { try { sessionStorage.setItem(ACTIVE_FLAG_KEY, '1'); } catch (_) {} }
+function clearActive()  { try { sessionStorage.removeItem(ACTIVE_FLAG_KEY); } catch (_) {} }
+function wasActive()    { try { return sessionStorage.getItem(ACTIVE_FLAG_KEY) === '1'; } catch (_) { return false; } }
+
+/** @type {{ sessions: Array<{id:string,title:string,createdAt:string}>, activeId:string|null }} */
+let appState = { sessions: [], activeId: null };
+
+let isBusy           = false;
+let statusPollTimer  = null;
+let renameActiveId   = null;   // session currently being renamed in-place
+
+// ═══════════════════════════════════════════════════════════════
+// DOM REFERENCES
+// ═══════════════════════════════════════════════════════════════
+const chatArea       = document.getElementById('chat-area');
+const chatMessages   = document.getElementById('chat-messages');
+const welcomeState   = document.getElementById('welcome-state');
+const chatInput      = document.getElementById('chat-input');
+const sendBtn        = document.getElementById('btn-send');
+const newChatBtn     = document.getElementById('btn-new-chat');
+const fileInput      = document.getElementById('file-input');
+const uploadBtn      = document.getElementById('btn-upload');
+const dropZone       = document.getElementById('drop-zone');
+const dropZoneStatus = document.getElementById('drop-zone-status');
+const documentList   = document.getElementById('document-list');
+const sessionList    = document.getElementById('session-list');
+const searchInput    = document.getElementById('search-sessions');
+const confirmModal   = document.getElementById('confirm-modal');
+const confirmTitle   = document.getElementById('confirm-title');
+const confirmBody    = document.getElementById('confirm-body');
+const confirmOkBtn   = document.getElementById('confirm-ok');
+const confirmCancel  = document.getElementById('confirm-cancel');
+
+// ═══════════════════════════════════════════════════════════════
+// UTILITIES
+// ═══════════════════════════════════════════════════════════════
+function escHtml(str) {
+  return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function newUUID() {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = Math.random() * 16 | 0;
+    return (c === 'x' ? r : (r & 3 | 8)).toString(16);
+  });
+}
+
+/**
+ * Render an assistant response as sanitized Markdown HTML.
+ *
+ * Uses marked (v9) for parsing and DOMPurify for sanitization so that
+ * no script execution is possible regardless of what the model returns.
+ * Falls back to plain-text paragraph wrapping if the libraries are not
+ * yet available (e.g. network issue).
+ *
+ * User bubbles still use escHtml() – no Markdown there.
+ */
+function formatText(raw) {
+  if (!raw) return '';
+
+  // DOMPurify + marked both available (normal case)
+  if (typeof marked !== 'undefined' && typeof DOMPurify !== 'undefined') {
+    const html = marked.parse(raw, { breaks: true, gfm: true });
+    const clean = DOMPurify.sanitize(html, {
+      ALLOWED_TAGS: [
+        'p','br','strong','em','b','i','ul','ol','li',
+        'h1','h2','h3','h4','h5','h6','blockquote','code','pre','hr','span'
+      ],
+      ALLOWED_ATTR: [],          // no attributes needed; strips onclick etc.
+      FORBID_TAGS: ['script','style','iframe','object','embed'],
+    });
+    return `<div class="md-body">${clean}</div>`;
+  }
+
+  // Fallback: plain paragraph wrapping (same as before)
+  let s = escHtml(raw);
+  s = s.replace(/\n\n+/g, '</p><p class="mt-3">');
+  s = s.replace(/\n/g, '<br>');
+  return '<p>' + s + '</p>';
+}
+
+// ═══════════════════════════════════════════════════════════════
+// STORAGE — persist session metadata in localStorage
+// ═══════════════════════════════════════════════════════════════
+function loadAppState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      appState.sessions = Array.isArray(parsed.sessions) ? parsed.sessions : [];
+      appState.activeId = parsed.activeId || null;
+    }
+  } catch (_) {
+    appState = { sessions: [], activeId: null };
+  }
+}
+
+function saveAppState() {
+  // Keep only the most recent MAX_SESSIONS entries to avoid unbounded growth
+  if (appState.sessions.length > MAX_SESSIONS) {
+    appState.sessions = appState.sessions.slice(0, MAX_SESSIONS);
+  }
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SESSION / CONVERSATION MANAGEMENT
+// ═══════════════════════════════════════════════════════════════
+function createNewSession() {
+  const id = newUUID();
+  appState.sessions.unshift({ id, title: 'שיחה חדשה', createdAt: new Date().toISOString() });
+  appState.activeId = id;
+  saveAppState();
+  markActive();
+  renderSessionList();
+  clearChatArea();
+}
+
+function switchSession(id) {
+  if (id === appState.activeId) return;
+  if (renameActiveId) cancelRename();
+  appState.activeId = id;
+  saveAppState();
+  markActive();
+  renderSessionList();
+  loadHistory();
+}
+
+function deleteSession(id) {
+  confirm2(
+    'מחיקת שיחה',
+    'האם למחוק את השיחה לצמיתות? הפעולה אינה ניתנת לביטול.',
+    async () => {
+      // Clear messages on server (best-effort)
+      fetch('/clear', { method: 'POST', headers: { 'X-Session-Id': id } }).catch(() => {});
+
+      appState.sessions = appState.sessions.filter(s => s.id !== id);
+
+      if (appState.activeId === id) {
+        // The currently-open conversation was deleted.  Return to the
+        // clean welcome state rather than silently jumping into an
+        // unrelated conversation or auto-creating an empty placeholder.
+        appState.activeId = null;
+        clearActive();
+        renderSessionList();
+        clearChatArea();
+      } else {
+        renderSessionList();
+      }
+      saveAppState();
+    }
+  );
+}
+
+function startRenameSession(id) {
+  if (renameActiveId === id) return;
+  renameActiveId = id;
+  renderSessionList();          // re-renders with an <input> for this item
+  const inp = document.getElementById('rename-input-' + id);
+  if (inp) { inp.focus(); inp.select(); }
+}
+
+function cancelRename() {
+  renameActiveId = null;
+  renderSessionList();
+}
+
+// `finishRename` may be invoked from multiple paths (Enter keydown, blur,
+// row-click).  Guard against running twice for the same edit – otherwise the
+// second call's lookup of the now-removed input element would clobber the
+// title with the fallback "שיחה ללא שם".
+function finishRename(id) {
+  if (renameActiveId !== id) return;
+  const inp = document.getElementById('rename-input-' + id);
+  const typed = inp ? inp.value.trim() : '';
+  const s = appState.sessions.find(s => s.id === id);
+  if (s) s.title = typed || s.title || 'שיחה ללא שם';
+  renameActiveId = null;
+  saveAppState();
+  renderSessionList();
+}
+
+/** Called after the first user message to auto-title the conversation. */
+function maybeAutoTitle(text) {
+  const s = appState.sessions.find(s => s.id === appState.activeId);
+  if (!s) return;
+  if (s.title === 'שיחה חדשה') {
+    s.title = text.length > 35 ? text.slice(0, 35) + '…' : text;
+  }
+  // Promote to top of list (most-recent first)
+  appState.sessions = [s, ...appState.sessions.filter(x => x.id !== s.id)];
+  saveAppState();
+  renderSessionList();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// FETCH HELPER — always injects the active session header
+// ═══════════════════════════════════════════════════════════════
+function api(url, opts = {}) {
+  const headers = new Headers(opts.headers || {});
+  if (appState.activeId) headers.set('X-Session-Id', appState.activeId);
+  return fetch(url, { ...opts, headers });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CHAT
+// ═══════════════════════════════════════════════════════════════
+async function sendMessage(text) {
+  text = (text || '').trim();
+  if (!text || isBusy) return;
+
+  // Welcome-state start: a session is created only when the user
+  // actually starts a conversation (clicks "New chat" or types the
+  // first message), so the sidebar never shows an empty default item.
+  if (!appState.activeId) createNewSession();
+  markActive();
+
+  isBusy = true;
+  setInputBusy(true);
+  hideSuggestions();
+  hideWelcome();
+
+  appendUserBubble(text);
+  chatInput.value = '';
+  maybeAutoTitle(text);
+  scrollToBottom();
+
+  const thinkingEl = appendThinking();
+  scrollToBottom();
+
+  try {
+    const res  = await api('/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: text }),
+    });
+    const data = await res.json();
+    removeThinking(thinkingEl);
+
+    if (!res.ok) {
+      appendAssistantBubble(data.error || 'אירעה שגיאה בשרת. נסו שוב.', []);
+    } else {
+      appendAssistantBubble(data.answer || '(אין תשובה)', data.context || []);
+    }
+  } catch (_) {
+    removeThinking(thinkingEl);
+    appendAssistantBubble('שגיאת רשת. בדוק את החיבור ונסה שנית.', []);
+  } finally {
+    isBusy = false;
+    setInputBusy(false);
+    scrollToBottom();
+    chatInput.focus();
+  }
+}
+
+async function loadHistory() {
+  clearChatArea();
+  try {
+    const res  = await api('/history');
+    const data = await res.json();
+    const msgs = data.messages || [];
+    if (!msgs.length) {
+      showWelcome();
+      return;
+    }
+    msgs.forEach(m => {
+      if (m.role === 'user') appendUserBubble(m.content);
+      else                   appendAssistantBubble(m.content, m.retrieved || []);
+    });
+    hideSuggestions();
+    scrollToBottom();
+  } catch (_) {
+    showWelcome();
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// DOCUMENTS
+// ═══════════════════════════════════════════════════════════════
+async function loadDocuments() {
+  try {
+    const res  = await fetch('/documents');
+    const data = await res.json();
+    renderDocumentList(data.documents || []);
+  } catch (_) {
+    // Silently ignore; document list will just stay empty
+  }
+}
+
+async function uploadFiles(files) {
+  if (!files || !files.length) return;
+
+  const form = new FormData();
+  Array.from(files).forEach(f => form.append('files', f));
+
+  setDropZoneStatus('uploading');
+
+  try {
+    const res  = await fetch('/upload', { method: 'POST', body: form });
+    const data = await res.json();
+
+    if (data.errors && data.errors.length) {
+      showToast(
+        data.errors.length === 1
+          ? `הקובץ "${data.errors[0].filename}" לא הועלה: ${data.errors[0].error}`
+          : `${data.errors.length} קבצים נכשלו בהעלאה`,
+        'error'
+      );
+    }
+    if (data.uploaded && data.uploaded.length) {
+      showToast(`${data.uploaded.length} ${data.uploaded.length === 1 ? 'קובץ הועלה' : 'קבצים הועלו'} בהצלחה`, 'success');
+    }
+
+    if (data.ingesting) {
+      setDropZoneStatus('ingesting');
+      startStatusPoll();
+    } else {
+      setDropZoneStatus('idle');
+    }
+
+    await loadDocuments();
+  } catch (_) {
+    setDropZoneStatus('idle');
+    showToast('שגיאה בהעלאת הקבצים', 'error');
+  }
+}
+
+function confirmDeleteDocument(s3Key, name) {
+  confirm2(
+    'מחיקת מסמך',
+    `האם למחוק את "${name}"? המסמך יוסר מהמאגר ומבסיס הידע.`,
+    () => deleteDocument(s3Key, name)
+  );
+}
+
+async function deleteDocument(s3Key, name) {
+  try {
+    const res  = await fetch('/documents', {
+      method:  'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ s3_key: s3Key }),
+    });
+    const data = await res.json();
+    if (res.ok && data.ok) {
+      showToast(`"${name}" נמחק בהצלחה`, 'success');
+      if (data.ingesting) {
+        setDropZoneStatus('ingesting');
+        startStatusPoll();
+      }
+      await loadDocuments();
+    } else {
+      showToast(data.error || 'שגיאה במחיקה', 'error');
+    }
+  } catch (_) {
+    showToast('שגיאת רשת במחיקה', 'error');
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// STATUS POLLING
+// ═══════════════════════════════════════════════════════════════
+async function pollStatus() {
+  try {
+    const res  = await fetch('/status');
+    const data = await res.json();
+    if (data.status === 'ingesting') {
+      setDropZoneStatus('ingesting');
+    } else if (data.status === 'ingestion_failed') {
+      setDropZoneStatus('error');
+      stopStatusPoll();
+      showToast('עיבוד המסמכים נכשל. נסה להעלות מחדש.', 'error');
+    } else {
+      setDropZoneStatus('idle');
+      stopStatusPoll();
+    }
+  } catch (_) { /* non-fatal */ }
+}
+
+function startStatusPoll() {
+  if (statusPollTimer) return;
+  statusPollTimer = setInterval(pollStatus, 3500);
+}
+
+function stopStatusPoll() {
+  if (statusPollTimer) { clearInterval(statusPollTimer); statusPollTimer = null; }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// RENDER — Session List
+// ═══════════════════════════════════════════════════════════════
+function renderSessionList() {
+  if (!sessionList) return;
+
+  const query    = (searchInput?.value || '').trim().toLowerCase();
+  const filtered = query
+    ? appState.sessions.filter(s => s.title.toLowerCase().includes(query))
+    : appState.sessions;
+
+  if (!filtered.length) {
+    sessionList.innerHTML = `<div class="text-center text-on-surface-variant/40 text-sm py-10">
+      ${query ? 'לא נמצאו תוצאות' : 'אין שיחות עדיין'}
+    </div>`;
+    return;
+  }
+
+  sessionList.innerHTML = filtered.map(session => {
+    const isActive  = session.id === appState.activeId;
+    const isRename  = renameActiveId === session.id;
+    const wrapClass = isActive
+      ? 'active-nav-item p-3.5 flex items-center justify-between group cursor-pointer shadow-md border border-primary/10 transition-all'
+      : 'text-on-surface-variant hover:bg-primary-fixed/50 p-3.5 rounded-xl flex items-center justify-between group cursor-pointer transition-all';
+    const icon = isActive ? 'chat_bubble' : 'forum';
+
+    const titleHtml = isRename
+      ? `<input id="rename-input-${escHtml(session.id)}"
+               class="rename-input font-label-md text-label-md"
+               value="${escHtml(session.title)}"
+               maxlength="60"
+               aria-label="שנה שם שיחה"
+               data-rename-id="${escHtml(session.id)}"/>`
+      : `<span class="font-label-md text-label-md truncate font-${isActive ? 'semibold' : 'medium'}">${escHtml(session.title)}</span>`;
+
+    const actionBtns = isActive
+      ? `<button class="p-1.5 hover:bg-white/40 rounded-lg text-primary/70 flex-shrink-0"
+               data-session-edit="${escHtml(session.id)}"
+               title="שנה שם" aria-label="שנה שם שיחה">
+           <span class="material-symbols-outlined text-[18px]">edit</span>
+         </button>
+         <button class="p-1.5 hover:bg-red-50 text-error rounded-lg flex-shrink-0"
+               data-session-delete="${escHtml(session.id)}"
+               title="מחק שיחה" aria-label="מחק שיחה">
+           <span class="material-symbols-outlined text-[18px]">delete</span>
+         </button>`
+      : `<button class="p-1.5 hover:bg-red-50 text-error rounded-lg flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+               data-session-delete="${escHtml(session.id)}"
+               title="מחק שיחה" aria-label="מחק שיחה">
+           <span class="material-symbols-outlined text-[18px]">delete</span>
+         </button>`;
+
+    return `
+      <div class="${wrapClass}" data-session-id="${escHtml(session.id)}" role="button" tabindex="0"
+           aria-label="${escHtml(session.title)}" aria-current="${isActive ? 'page' : 'false'}">
+        <div class="flex items-center gap-3 overflow-hidden flex-1 min-w-0">
+          <span class="material-symbols-outlined text-sm flex-shrink-0">${icon}</span>
+          <div class="flex-1 min-w-0">${titleHtml}</div>
+        </div>
+        <div class="flex gap-0.5 flex-shrink-0 ms-1">${actionBtns}</div>
+      </div>`;
+  }).join('');
+
+  // Wire the rename input's commit/cancel directly on the element so
+  // there is no race with delegated listeners on the surrounding list.
+  // The previous implementation used a delegated `focusout` on the list,
+  // which fired the moment the edit *button* lost focus (because the
+  // list was re-rendered) and immediately cancelled the rename before
+  // the user could type or press Enter.
+  if (renameActiveId) {
+    const inp = document.getElementById('rename-input-' + renameActiveId);
+    if (inp) {
+      if (document.activeElement !== inp) inp.focus();
+      inp.onkeydown = (e) => {
+        if (e.key === 'Enter')  { e.preventDefault(); finishRename(renameActiveId); }
+        if (e.key === 'Escape') { e.preventDefault(); cancelRename(); }
+      };
+      inp.onblur = () => { if (renameActiveId) finishRename(renameActiveId); };
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// RENDER — Document List
+// ═══════════════════════════════════════════════════════════════
+function renderDocumentList(docs) {
+  if (!documentList) return;
+
+  if (!docs.length) {
+    documentList.innerHTML = `
+      <div class="text-center text-on-surface-variant/40 text-sm py-8 px-3">
+        <span class="material-symbols-outlined text-4xl block mb-2 opacity-25">folder_open</span>
+        אין מסמכים עדיין. העלה את הראשון!
+      </div>`;
+    return;
+  }
+
+  documentList.innerHTML = docs.map(doc => {
+    const ext = (doc.original_filename.split('.').pop() || '').toLowerCase();
+    const iconMap   = { pdf: 'picture_as_pdf', docx: 'description', doc: 'description', txt: 'article' };
+    const colorMap  = {
+      pdf:  'text-rose-400 bg-rose-50',
+      docx: 'text-blue-400 bg-blue-50',
+      doc:  'text-blue-400 bg-blue-50',
+      txt:  'text-green-500 bg-green-50',
+    };
+    const icon  = iconMap[ext]  || 'insert_drive_file';
+    const color = colorMap[ext] || 'text-primary/50 bg-primary/5';
+
+    const downloadHref = `/documents/download?s3_key=${encodeURIComponent(doc.s3_key)}`;
+    return `
+      <div class="glass-panel p-4 rounded-xl flex items-center justify-between group shadow-sm hover:shadow-md transition-all border-white/50">
+        <a href="${downloadHref}" target="_blank" rel="noopener"
+           class="source-link flex items-center gap-3 overflow-hidden flex-1 min-w-0"
+           title="הורד את ${escHtml(doc.original_filename)}">
+          <div class="w-10 h-10 rounded-lg ${color} flex items-center justify-center flex-shrink-0">
+            <span class="material-symbols-outlined">${icon}</span>
+          </div>
+          <span class="font-label-md text-label-md font-medium truncate text-on-surface">${escHtml(doc.original_filename)}</span>
+        </a>
+        <button class="p-2 hover:bg-red-50 text-error rounded-lg flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity ms-1"
+                data-doc-delete="${escHtml(doc.s3_key)}"
+                data-doc-name="${escHtml(doc.original_filename)}"
+                title="מחק מסמך" aria-label="מחק ${escHtml(doc.original_filename)}">
+          <span class="material-symbols-outlined text-sm">delete</span>
         </button>
-        <ul class="sources-list"></ul>
+      </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// RENDER — Chat Bubbles
+// ═══════════════════════════════════════════════════════════════
+function appendUserBubble(text) {
+  const el = document.createElement('div');
+  el.className = 'flex flex-col gap-3 items-end self-end max-w-[88%]';
+  el.innerHTML = `
+    <div class="flex items-center gap-2 mb-1">
+      <span class="font-label-sm text-label-sm font-bold text-on-surface-variant">תאיר</span>
+    </div>
+    <div class="bg-primary text-white p-5 rounded-2xl rounded-tl-none text-lg leading-relaxed shadow-lg border border-primary/20 break-words">
+      ${escHtml(text)}
+    </div>`;
+  chatMessages.appendChild(el);
+}
+
+function appendAssistantBubble(text, sources) {
+  // Build the static chrome (avatar row + empty glass panel) via innerHTML.
+  // The text body and sources section are inserted separately via DOM APIs so
+  // the browser's HTML parser cannot accidentally drop either one due to
+  // auto-closing behaviour triggered by the markdown-generated content.
+  const el = document.createElement('div');
+  el.className = 'flex flex-col gap-3 items-start max-w-[88%]';
+  el.innerHTML = `
+    <div class="flex items-center gap-2 mb-1">
+      <div class="w-8 h-8 rounded-xl bg-secondary-container flex items-center justify-center shadow-sm">
+        <span class="material-symbols-outlined text-[20px] text-primary" style="font-variation-settings:'FILL' 1;">auto_awesome</span>
       </div>
+      <span class="font-label-sm text-label-sm font-bold text-primary">העוזר הפדגוגי</span>
     </div>
-  </div>
-</template>
+    <div class="glass-panel p-6 rounded-2xl rounded-tr-none text-on-surface text-lg leading-relaxed shadow-sm border border-primary/10 break-words"></div>`;
 
-<!-- Thinking / loading indicator -->
-<template id="tpl-thinking">
-  <div class="message message--assistant" id="msg-thinking">
-    <div class="avatar">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-           stroke="currentColor" stroke-width="2">
-        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-      </svg>
-    </div>
-    <div class="bubble bubble--assistant bubble--thinking">
-      <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-    </div>
-  </div>
-</template>
+  const panel = el.querySelector('.glass-panel');
 
-<script src="/static/js/chat.js"></script>
+  // ── 1. Markdown-rendered answer body ─────────────────────────────
+  panel.innerHTML = formatText(text);
+
+  // ── 2. Sources section (appended via DOM – never through a parser) ─
+  if (sources && sources.length) {
+    const wrap = document.createElement('div');
+    wrap.className = 'mt-4 pt-3 border-t border-primary/10';
+
+    const lbl = document.createElement('p');
+    lbl.className = 'text-xs text-on-surface-variant/60 mb-2 font-semibold';
+    lbl.textContent = 'מקורות:';
+    wrap.appendChild(lbl);
+
+    const chips = document.createElement('div');
+    chips.className = 'flex flex-wrap gap-1.5';
+
+    for (const s of sources) {
+      const name = s.source || '';
+      if (s.s3_key) {
+        const a = document.createElement('a');
+        a.href = `/documents/download?s3_key=${encodeURIComponent(s.s3_key)}`;
+        a.target = '_blank';
+        a.rel = 'noopener';
+        a.className = 'source-link text-xs bg-primary/5 text-primary/70 px-2.5 py-1 rounded-full border border-primary/10 font-medium';
+        a.title = `הורד את ${name}`;
+        a.textContent = name;
+        chips.appendChild(a);
+      } else {
+        const span = document.createElement('span');
+        span.className = 'text-xs bg-primary/5 text-primary/70 px-2.5 py-1 rounded-full border border-primary/10 font-medium';
+        span.textContent = name;
+        chips.appendChild(span);
+      }
+    }
+
+    wrap.appendChild(chips);
+    panel.appendChild(wrap);
+  }
+
+  chatMessages.appendChild(el);
+}
+
+function appendThinking() {
+  const el = document.createElement('div');
+  el.id = 'msg-thinking';
+  el.className = 'flex flex-col gap-3 items-start max-w-[88%]';
+  el.innerHTML = `
+    <div class="flex items-center gap-2 mb-1">
+      <div class="w-8 h-8 rounded-xl bg-secondary-container flex items-center justify-center shadow-sm">
+        <span class="material-symbols-outlined text-[20px] text-primary" style="font-variation-settings:'FILL' 1;">auto_awesome</span>
+      </div>
+      <span class="font-label-sm text-label-sm font-bold text-primary">העוזר הפדגוגי</span>
+    </div>
+    <div class="glass-panel p-5 rounded-2xl rounded-tr-none shadow-sm border border-primary/10">
+      <div class="flex gap-1.5 items-center">
+        <div class="thinking-dot"></div>
+        <div class="thinking-dot"></div>
+        <div class="thinking-dot"></div>
+      </div>
+    </div>`;
+  chatMessages.appendChild(el);
+  return el;
+}
+
+function removeThinking(el) { el?.remove(); }
+
+// ═══════════════════════════════════════════════════════════════
+// CHAT AREA STATE HELPERS
+// ═══════════════════════════════════════════════════════════════
+function clearChatArea() {
+  chatMessages.innerHTML = '';
+  showWelcome();
+  showSuggestions();
+}
+
+function showWelcome()    { welcomeState?.classList.remove('hidden'); }
+function hideWelcome()    { welcomeState?.classList.add('hidden'); }
+function showSuggestions(){ document.getElementById('suggestion-chips')?.classList.remove('hidden'); }
+function hideSuggestions(){ document.getElementById('suggestion-chips')?.classList.add('hidden'); }
+
+function setInputBusy(busy) {
+  if (chatInput) chatInput.disabled = busy;
+  if (sendBtn)   { sendBtn.disabled = busy; }
+}
+
+function scrollToBottom() {
+  requestAnimationFrame(() => { if (chatArea) chatArea.scrollTop = chatArea.scrollHeight; });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// DROP ZONE STATUS
+// ═══════════════════════════════════════════════════════════════
+function setDropZoneStatus(s) {
+  if (!dropZoneStatus) return;
+  const labels = {
+    idle:      '',
+    uploading: '⏳ מעלה קבצים...',
+    ingesting: '🔄 מעבד מסמכים...',
+    error:     '❌ עיבוד נכשל',
+  };
+  const label = labels[s] ?? '';
+  if (!label) {
+    dropZoneStatus.textContent = '';
+    dropZoneStatus.classList.add('hidden');
+  } else {
+    dropZoneStatus.textContent = label;
+    dropZoneStatus.classList.remove('hidden');
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// TOAST NOTIFICATIONS
+// ═══════════════════════════════════════════════════════════════
+function showToast(message, type = 'info') {
+  const container = document.getElementById('toast-container');
+  if (!container) return;
+
+  const palette = {
+    success: 'bg-green-50 text-green-800 border-green-200',
+    error:   'bg-red-50   text-red-800   border-red-200',
+    info:    'bg-white    text-on-surface border-primary/20',
+  };
+
+  const toast = document.createElement('div');
+  toast.className = `pointer-events-auto px-5 py-3 rounded-xl border shadow-lg text-sm font-medium max-w-xs text-center
+    ${palette[type] || palette.info} toast-enter`;
+  toast.textContent = message;
+  toast.setAttribute('role', 'alert');
+  container.appendChild(toast);
+
+  // Animate in
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => toast.classList.replace('toast-enter', 'toast-show'));
+  });
+
+  // Auto-remove
+  setTimeout(() => {
+    toast.classList.replace('toast-show', 'toast-leave');
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CONFIRMATION MODAL
+// ═══════════════════════════════════════════════════════════════
+let _pendingConfirmCb = null;
+
+function confirm2(title, body, onConfirm) {
+  if (!confirmModal) { if (window.confirm(body)) onConfirm(); return; }
+  confirmTitle.textContent = title;
+  confirmBody.textContent  = body;
+  _pendingConfirmCb = onConfirm;
+  confirmModal.classList.remove('hidden');
+  confirmOkBtn.focus();
+}
+
+function closeConfirmModal() {
+  confirmModal?.classList.add('hidden');
+  _pendingConfirmCb = null;
+}
+
+confirmOkBtn?.addEventListener('click', () => {
+  const cb = _pendingConfirmCb;
+  closeConfirmModal();
+  cb?.();
+});
+confirmCancel?.addEventListener('click', closeConfirmModal);
+confirmModal?.addEventListener('click', e => { if (e.target === confirmModal) closeConfirmModal(); });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && confirmModal && !confirmModal.classList.contains('hidden')) closeConfirmModal();
+});
+
+// ═══════════════════════════════════════════════════════════════
+// DRAG & DROP
+// ═══════════════════════════════════════════════════════════════
+function setupDropZone() {
+  if (!dropZone) return;
+
+  dropZone.addEventListener('dragover', e => {
+    e.preventDefault();
+    dropZone.classList.add('drop-active');
+  });
+  dropZone.addEventListener('dragleave', e => {
+    if (!dropZone.contains(e.relatedTarget)) dropZone.classList.remove('drop-active');
+  });
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('drop-active');
+    const files = e.dataTransfer?.files;
+    if (files?.length) uploadFiles(files);
+  });
+  // Also allow clicking anywhere on the zone (except the button, which has its own handler)
+  dropZone.addEventListener('click', e => {
+    if (e.target !== uploadBtn && !uploadBtn?.contains(e.target)) fileInput?.click();
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// EVENT DELEGATION — Session List
+// ═══════════════════════════════════════════════════════════════
+sessionList?.addEventListener('click', e => {
+  // Rename input: don't propagate clicks inside it to the row
+  if (e.target.closest('input')) return;
+
+  const editBtn   = e.target.closest('[data-session-edit]');
+  const deleteBtn = e.target.closest('[data-session-delete]');
+  const row       = e.target.closest('[data-session-id]');
+
+  if (editBtn) {
+    e.stopPropagation();
+    startRenameSession(editBtn.dataset.sessionEdit);
+    return;
+  }
+  if (deleteBtn) {
+    e.stopPropagation();
+    deleteSession(deleteBtn.dataset.sessionDelete);
+    return;
+  }
+  if (row) {
+    switchSession(row.dataset.sessionId);
+  }
+});
+
+// Rename commit/cancel is wired *directly* on the rename <input> element
+// in renderSessionList() below.  A previous implementation used a
+// delegated `focusout` listener here, but that fired as soon as the
+// edit button (the source of the click that opened the rename) was
+// removed from the DOM, immediately calling finishRename and so
+// cancelling the edit before the user could type anything – which is
+// why "pressing Enter never saved".  Direct handlers on the input avoid
+// that race entirely.
+
+// Keyboard navigation for session rows
+sessionList?.addEventListener('keydown', e => {
+  if (e.key === 'Enter' || e.key === ' ') {
+    const row = e.target.closest('[data-session-id]');
+    if (row && !e.target.closest('button') && !e.target.closest('input')) {
+      switchSession(row.dataset.sessionId);
+    }
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════
+// EVENT DELEGATION — Document List
+// ═══════════════════════════════════════════════════════════════
+documentList?.addEventListener('click', e => {
+  const deleteBtn = e.target.closest('[data-doc-delete]');
+  if (deleteBtn) {
+    e.stopPropagation();
+    confirmDeleteDocument(deleteBtn.dataset.docDelete, deleteBtn.dataset.docName);
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════
+// DIRECT BUTTON WIRING
+// ═══════════════════════════════════════════════════════════════
+sendBtn?.addEventListener('click', () => {
+  sendMessage(chatInput?.value);
+  requestAnimationFrame(() => {
+    if (chatInput) chatInput.style.height = '';
+    _positionSendBtn();
+  });
+});
+
+// Toggle .btn-send-multiline on the send button.
+//
+// Single-line  → CSS default  (top:50% + translateY(-50%)): pixel-perfect
+//                centering regardless of rem scaling or timing.
+// Multi-line   → .btn-send-multiline  (bottom:8px): button tracks the last
+//                typed line as the textarea grows.
+//
+// Using a CSS class instead of inline styles means:
+//   • The initial centred state is guaranteed by the stylesheet (no JS timing
+//     dependency on offsetHeight being ready at page-load).
+//   • The only JS responsibility is toggling one class on height changes.
+const MULTILINE_CLASS = 'btn-send-multiline';
+function _positionSendBtn() {
+  if (!sendBtn || !chatInput) return;
+  const textareaH = chatInput.offsetHeight;
+  const btnH      = sendBtn.offsetHeight;
+  if (btnH === 0) return; // not yet laid out – CSS default is already correct
+  const multiline = (textareaH - btnH) > 24;
+  sendBtn.classList.toggle(MULTILINE_CLASS, multiline);
+}
+
+// ChatGPT-style auto-grow: start at one line, grow up to the CSS max-height,
+// then scroll internally.  The typed text always remains visible because we
+// resize the textarea to fit its content on every input event.
+function autoGrowInput() {
+  if (!chatInput) return;
+  chatInput.style.height = 'auto';
+  chatInput.style.height = chatInput.scrollHeight + 'px';
+  _positionSendBtn();
+}
+chatInput?.addEventListener('input', autoGrowInput);
+
+chatInput?.addEventListener('keydown', e => {
+  // Enter sends; Shift+Enter inserts a newline.
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage(chatInput.value);
+    // Reset to one line after submission.
+    requestAnimationFrame(() => {
+      chatInput.style.height = '';
+      _positionSendBtn();
+    });
+  }
+});
+
+newChatBtn?.addEventListener('click', () => createNewSession());
+
+uploadBtn?.addEventListener('click', e => { e.stopPropagation(); fileInput?.click(); });
+
+fileInput?.addEventListener('change', () => {
+  if (fileInput.files?.length) { uploadFiles(fileInput.files); fileInput.value = ''; }
+});
+
+searchInput?.addEventListener('input', renderSessionList);
+
+// Logout: clear per-tab session state then navigate to the goodbye page.
+document.getElementById('btn-logout')?.addEventListener('click', () => {
+  try { localStorage.removeItem(STORAGE_KEY); } catch (_) { /* non-fatal */ }
+  try { sessionStorage.clear(); } catch (_) { /* non-fatal */ }
+  clearActive();
+  window.location.href = '/logout';
+});
+
+// Suggestion chips
+document.querySelectorAll('.suggestion-chip').forEach(btn => {
+  btn.addEventListener('click', () => sendMessage(btn.dataset.suggestion));
+});
+
+// Subtle press animation on all buttons
+document.addEventListener('mousedown', e => {
+  const b = e.target.closest('button:not([disabled])');
+  if (b) b.style.transform = 'scale(0.97)';
+});
+document.addEventListener('mouseup', () => {
+  document.querySelectorAll('button').forEach(b => { b.style.transform = ''; });
+});
+
+// ═══════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════
+(async function init() {
+  loadAppState();
+  setupDropZone();
+
+  // Startup rules:
+  //   • A *new* visit (no per-tab active flag) opens to a clean welcome
+  //     state.  Past conversations are still visible in the sidebar but
+  //     none is auto-loaded, and no empty placeholder session is created.
+  //   • A *refresh* of a tab that already had an active conversation
+  //     restores that exact conversation – same activeId, same history
+  //     loaded from SQLite, same Bedrock sessionId on the server – so
+  //     the assistant continues to remember earlier turns.
+  const activeExists = appState.activeId
+    && appState.sessions.some(s => s.id === appState.activeId);
+
+  if (wasActive() && activeExists) {
+    renderSessionList();
+    await loadHistory();
+  } else {
+    appState.activeId = null;
+    saveAppState();
+    clearActive();
+    renderSessionList();
+    clearChatArea();
+  }
+
+  // Position the send button correctly for the initial single-line state.
+  _positionSendBtn();
+
+  await loadDocuments();
+
+  // Check initial ingestion status
+  try {
+    const res  = await fetch('/status');
+    const data = await res.json();
+    if (data.status === 'ingesting') {
+      setDropZoneStatus('ingesting');
+      startStatusPoll();
+    }
+  } catch (_) { /* no connectivity yet, ignore */ }
+})();
+{% endraw %}
+</script>
 </body>
 </html>

@@ -36,11 +36,12 @@ from __future__ import annotations
 
 import threading
 import uuid
+from urllib.parse import quote
 
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, jsonify, redirect, render_template, request
 
 from config import settings
-from database.models import init_db, list_uploads, record_upload
+from database.models import init_db, list_uploads, record_upload, delete_upload
 from services.bedrock_service import BedrockService
 from services.chat_service import ChatService
 from storage.uploads import UploadError, save_upload
@@ -180,15 +181,170 @@ def _start_ingestion_background() -> None:
     threading.Thread(target=_run, daemon=True).start()
 
 
+def _display_name_for_key(key: str) -> str:
+    """
+    Best-effort human-readable name for an S3 object key.
+
+    1. Strip the configured S3 prefix.
+    2. For backward compatibility, drop any legacy ``<uuid-hex>__`` prefix
+       that older uploads may still carry in S3.
+    """
+    basename = key[len(settings.S3_PREFIX):] if key.startswith(settings.S3_PREFIX) else key
+    basename = basename.rsplit("/", 1)[-1]
+    prefix, sep, remainder = basename.partition("__")
+    if sep and prefix and all(c in "0123456789abcdef" for c in prefix.lower()):
+        return remainder
+    return basename
+
+
+def _list_s3_documents() -> list[dict]:
+    """
+    List every object under S3_PREFIX in the configured bucket.
+
+    The Knowledge Base S3 bucket is the single source of truth, so the
+    document panel reflects whatever actually exists in S3 (including
+    files placed there directly by an admin via the AWS Console).
+    """
+    from botocore.exceptions import BotoCoreError, ClientError
+    from storage.s3_client import get_s3_client
+
+    docs: list[dict] = []
+    paginator = get_s3_client().get_paginator("list_objects_v2")
+    try:
+        pages = paginator.paginate(
+            Bucket=settings.S3_BUCKET, Prefix=settings.S3_PREFIX
+        )
+        for page in pages:
+            for obj in page.get("Contents", []) or []:
+                key = obj.get("Key", "")
+                # Skip the "folder" marker if present.
+                if not key or key.endswith("/"):
+                    continue
+                docs.append(
+                    {
+                        "original_filename": _display_name_for_key(key),
+                        "s3_key": key,
+                        "upload_timestamp": (
+                            obj["LastModified"].isoformat()
+                            if obj.get("LastModified")
+                            else None
+                        ),
+                    }
+                )
+    except (BotoCoreError, ClientError) as exc:
+        print(f"[app] S3 list failed; falling back to DB registry: {exc}", flush=True)
+        return list_uploads()
+
+    # Newest first (matches the previous DB-backed ordering).
+    docs.sort(key=lambda d: d.get("upload_timestamp") or "", reverse=True)
+    return docs
+
+
 @app.route("/documents", methods=["GET"])
 def documents():
     """
     GET /documents
-    Return the registry of uploaded documents (newest first). Only the
-    original filename is intended for display; the S3 key is included for
-    completeness/debugging.
+    Return the live list of documents in the Knowledge Base S3 bucket.
+    The bucket is the single source of truth – any file added directly
+    in AWS will appear here, and any file deleted in AWS will disappear.
     """
-    return jsonify({"documents": list_uploads()})
+    return jsonify({"documents": _list_s3_documents()})
+
+
+@app.route("/documents/download", methods=["GET"])
+def download_document():
+    """
+    GET /documents/download?s3_key=<key>
+    Issue a short-lived S3 pre-signed URL and redirect the browser to it.
+
+    The bucket remains private; the URL is valid for a few minutes and
+    expires automatically.  Only keys under the configured S3_PREFIX may
+    be requested, to prevent arbitrary object access.
+    """
+    s3_key = (request.args.get("s3_key") or "").strip()
+    if not s3_key:
+        return jsonify({"error": "s3_key is required."}), 400
+    if not s3_key.startswith(settings.S3_PREFIX):
+        return jsonify({"error": "Invalid s3_key prefix."}), 400
+
+    from botocore.exceptions import BotoCoreError, ClientError
+    from storage.s3_client import get_s3_client
+
+    # Force the browser to download (rather than render inline) and
+    # preserve the original Hebrew filename via RFC 5987.  HTTP headers
+    # are limited to ISO-8859-1, so the ``filename`` parameter holds an
+    # ASCII-only fallback for very old clients, and ``filename*`` carries
+    # the UTF-8, URL-encoded original name that modern browsers prefer.
+    display_name = _display_name_for_key(s3_key)
+    ascii_fallback = display_name.encode("ascii", "ignore").decode("ascii") or "document"
+    disposition = (
+        f'attachment; filename="{ascii_fallback}"; '
+        f"filename*=UTF-8''{quote(display_name, safe='')}"
+    )
+
+    try:
+        url = get_s3_client().generate_presigned_url(
+            "get_object",
+            Params={
+                "Bucket": settings.S3_BUCKET,
+                "Key": s3_key,
+                "ResponseContentDisposition": disposition,
+            },
+            ExpiresIn=300,  # 5 minutes
+        )
+    except (BotoCoreError, ClientError) as exc:
+        print(f"[app] presign failed for '{s3_key}': {exc}", flush=True)
+        return jsonify({"error": "Could not generate download link."}), 500
+
+    return redirect(url, code=302)
+
+
+@app.route("/logout")
+def logout():
+    """
+    GET /logout
+    Render a simple goodbye page.  The frontend clears its per-tab
+    session storage before navigating here.
+    """
+    return render_template("logout.html")
+
+
+@app.route("/documents", methods=["DELETE"])
+def delete_document():
+    """
+    DELETE /documents
+    Request  body: {"s3_key": "data/<uuid>__filename.pdf"}
+    Response body: {"ok": true, "ingesting": true}
+
+    Removes the object from S3, removes its record from the
+    uploaded_documents table, then starts a Bedrock ingestion job so the
+    Knowledge Base no longer returns content from the deleted document.
+
+    Only keys that begin with the configured S3_PREFIX are accepted to
+    prevent arbitrary object deletion.
+    """
+    data = request.get_json(silent=True) or {}
+    s3_key = (data.get("s3_key") or "").strip()
+
+    if not s3_key:
+        return jsonify({"error": "s3_key is required."}), 400
+
+    if not s3_key.startswith(settings.S3_PREFIX):
+        return jsonify({"error": "Invalid s3_key prefix."}), 400
+
+    from botocore.exceptions import ClientError
+    from storage.s3_client import get_s3_client
+
+    try:
+        get_s3_client().delete_object(Bucket=settings.S3_BUCKET, Key=s3_key)
+    except ClientError as exc:
+        print(f"[app] S3 delete failed for '{s3_key}': {exc}", flush=True)
+        return jsonify({"error": "Failed to delete from S3."}), 500
+
+    delete_upload(s3_key)
+    _start_ingestion_background()
+
+    return jsonify({"ok": True, "ingesting": True})
 
 
 @app.route("/upload", methods=["POST"])

@@ -228,6 +228,19 @@ def list_uploads() -> list[dict]:
     return [dict(row) for row in rows]
 
 
+def delete_upload(s3_key: str) -> bool:
+    """
+    Remove a document record by its S3 key.
+    Returns True if a row was deleted, False if the key was not found.
+    """
+    with _get_db() as conn:
+        cursor = conn.execute(
+            "DELETE FROM uploaded_documents WHERE s3_key = ?",
+            (s3_key,),
+        )
+        return cursor.rowcount > 0
+
+
 def get_display_name(s3_key: str) -> str | None:
     """
     Return the original filename for an S3 key, or None if the key was not

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>התנתקת בהצלחה</title>
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@200;300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    font-family: 'Assistant', sans-serif;
+    background:
+      radial-gradient(circle at 20% 20%, rgba(255, 241, 242, 0.6) 0%, transparent 45%),
+      radial-gradient(circle at 80% 80%, rgba(231, 226, 218, 0.5) 0%, transparent 45%),
+      #fdfcfb;
+    color: #2d2d2d;
+  }
+  .center {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 1.5rem;
+  }
+  .card {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(128, 0, 32, 0.08);
+    border-radius: 1.25rem;
+    padding: 3rem 3.5rem;
+    box-shadow: 0 10px 40px -10px rgba(128, 0, 32, 0.15);
+    max-width: 32rem;
+  }
+  h1 {
+    margin: 0 0 0.75rem 0;
+    font-size: 2.25rem;
+    font-weight: 700;
+    color: #800020;
+    letter-spacing: -0.01em;
+  }
+  p {
+    margin: 0 0 1.75rem 0;
+    font-size: 1.05rem;
+    color: #6b7280;
+  }
+  a.return {
+    display: inline-block;
+    background: #800020;
+    color: #fff;
+    text-decoration: none;
+    padding: 0.75rem 1.75rem;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    transition: filter .2s, transform .2s;
+  }
+  a.return:hover { filter: brightness(1.1); transform: translateY(-1px); }
+</style>
+</head>
+<body>
+  <div class="center">
+    <div class="card">
+      <h1>תאיר, התנתקת בהצלחה!</h1>
+      <p>תודה שהשתמשת בעוזר החינוכי החכם. נתראה בקרוב.</p>
+      <a class="return" href="/">חזרה למסך הכניסה</a>
+    </div>
+  </div>
+</body>
+</html>

@@ -90,6 +90,19 @@ class _Settings:
             f"foundation-model/{model_id}"
         )
 
+    @property
+    def BEDROCK_SYSTEM_PROMPT(self) -> str:
+        """
+        Optional generation prompt template for RetrieveAndGenerate.
+
+        Must contain the ``$search_results$`` placeholder (Bedrock replaces it
+        with the retrieved document chunks at inference time).
+
+        When this variable is not set (or empty), the parameter is omitted
+        from the API call entirely so Bedrock uses its own default prompt.
+        """
+        return os.getenv("BEDROCK_SYSTEM_PROMPT", "").strip()
+
     # ── Document storage ─────────────────────────────────────────────
     @property
     def AWS_REGION(self) -> str:

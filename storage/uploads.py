@@ -5,12 +5,13 @@ Write-path helper for the upload endpoint.
 
 Responsibilities
   1. Validate the upload's file extension against the configured allow-list.
-  2. Generate a collision-free S3 key:  documents/<uuid>__<safe_filename>
+  2. Generate a clean S3 key:  <prefix><sanitised_filename>
   3. Stream the file straight to S3 (no local temp file is written).
 
-The original filename is preserved verbatim by the caller (it is stored in
-the uploaded_documents table), so non-ASCII / Hebrew filenames are not lost –
-only the S3 *key* uses an ASCII-sanitised variant for portability.
+The S3 key is intentionally the (sanitised) original filename – no UUID
+prefix – so the object appears in the AWS Console and in Knowledge Base
+citations with its real name.  Re-uploading the same filename overwrites
+the existing object (S3's PutObject is by-design idempotent on key).
 """
 
 from __future__ import annotations
@@ -57,30 +58,27 @@ def _sanitise_for_s3_key(name: str) -> str:
 
 def build_s3_key(original_filename: str) -> str:
     """
-    Build a unique, S3-safe key for an upload.
+    Build a clean, S3-safe key for an upload.
 
-    Format: ``<prefix><uuid4>__<visible_filename>`` e.g.
-    ``data/3f9c…__report.pdf`` or ``data/3f9c…__דוח.pdf``.
+    Format: ``<prefix><visible_filename>`` e.g. ``data/report.pdf`` or
+    ``data/דוח.pdf``.  No UUID prefix is added – the object's key in S3
+    and in Bedrock citations is exactly the (sanitised) filename the user
+    uploaded.
 
-    The uuid prefix guarantees uniqueness; the visible portion preserves the
-    original filename (Hebrew included) after stripping only path separators
-    and control characters.  If sanitisation leaves nothing usable, a
-    deterministic ``document_<uuid>`` fallback is used so the key is still
-    unique and keeps its extension.
+    Re-uploading a file with the same name overwrites the existing object,
+    matching the behaviour of dragging a file directly into the AWS Console.
 
-    The original (unmodified) filename is stored separately in the
-    uploaded_documents table by the caller, so this sanitisation never
-    affects what the UI displays.
+    If sanitisation leaves nothing usable, a deterministic
+    ``document_<uuid>`` fallback is used so the key is still valid.
     """
-    token = uuid.uuid4().hex
-    ext = _extension(original_filename)
-
     safe_name = _sanitise_for_s3_key(original_filename)
     if not safe_name:
         # Pathological input (e.g. name was only slashes/control chars).
+        ext = _extension(original_filename)
+        token = uuid.uuid4().hex
         safe_name = f"document_{token}.{ext}" if ext else f"document_{token}"
 
-    return f"{settings.S3_PREFIX}{token}__{safe_name}"
+    return f"{settings.S3_PREFIX}{safe_name}"
 
 
 def save_upload(file_storage: FileStorage) -> tuple[str, str]:

@@ -177,12 +177,49 @@ class BedrockService:
         """
         from botocore.exceptions import ClientError
 
+        kb_config: dict = {
+            "knowledgeBaseId": settings.BEDROCK_KNOWLEDGE_BASE_ID,
+            "modelArn": settings.BEDROCK_MODEL_ARN,
+        }
+
+        kb_config["retrievalConfiguration"] = {
+        "vectorSearchConfiguration": {
+            "numberOfResults": 8
+            }
+        }
+
+        # ── Generation configuration ─────────────────────────────────
+        # Build only when at least one sub-key is present, so we never
+        # send an empty object to Bedrock.
+        generation_config: dict = {}
+
+        # System / generation prompt.
+        # Set BEDROCK_SYSTEM_PROMPT in .env to override Bedrock's default.
+        # The template MUST contain the $search_results$ placeholder.
+        # When the variable is absent or empty the parameter is omitted
+        # entirely and Bedrock falls back to its built-in default prompt.
+        system_prompt = settings.BEDROCK_SYSTEM_PROMPT
+        if system_prompt:
+            generation_config["promptTemplate"] = {
+                "textPromptTemplate": system_prompt
+            }
+
+        # ── Inference tuning (commented out – uncomment to activate) ──
+        # generation_config["inferenceConfig"] = {
+        #     "textInferenceConfig": {
+        #         "temperature": 0.3,   # 0.0 = deterministic, 1.0 = creative
+        #         "topP": 0.9,
+        #         "maxTokens": 512,
+        #         # "stopSequences": [],
+        #     }
+        # }
+
+        if generation_config:
+            kb_config["generationConfiguration"] = generation_config
+
         config = {
             "type": "KNOWLEDGE_BASE",
-            "knowledgeBaseConfiguration": {
-                "knowledgeBaseId": settings.BEDROCK_KNOWLEDGE_BASE_ID,
-                "modelArn": settings.BEDROCK_MODEL_ARN,
-            },
+            "knowledgeBaseConfiguration": kb_config,
         }
 
         def _call(sid: str | None):
@@ -190,6 +227,12 @@ class BedrockService:
                 "input": {"text": query},
                 "retrieveAndGenerateConfiguration": config,
             }
+            # Forward the previous Bedrock sessionId so the Knowledge Base
+            # treats subsequent turns within the same conversation as a
+            # continuation (giving the assistant access to earlier
+            # questions and answers in the same chat session).  If the
+            # sessionId is missing or rejected, the caller will retry
+            # below with sid=None to start a fresh session.
             if sid:
                 kwargs["sessionId"] = sid
             return self._runtime().retrieve_and_generate(**kwargs)
@@ -210,9 +253,12 @@ class BedrockService:
                 _log(f"RetrieveAndGenerate failed: {exc}")
                 raise RuntimeError(f"Bedrock query failed: {exc}") from exc
 
-        answer = (resp.get("output", {}) or {}).get("text", "").strip()
+        raw_output_text = (resp.get("output", {}) or {}).get("text", "")
+        answer = raw_output_text.strip()
         new_session_id = resp.get("sessionId", session_id)
-        sources = self._extract_sources(resp.get("citations", []) or [])
+
+        raw_citations = resp.get("citations", []) or []
+        sources = self._extract_sources(raw_citations)
 
         return {
             "answer": answer,
@@ -228,8 +274,9 @@ class BedrockService:
         """
         Turn Bedrock citations into a de-duplicated list of display sources.
 
-        Per the Phase 2 decision, only the source reference (original
-        filename) is kept – no similarity score.
+        Each entry contains ``source`` (human-readable filename) and
+        ``s3_key`` (the underlying object key, used by the frontend to
+        request a pre-signed download URL).
         """
         seen: set[str] = set()
         sources: list[dict] = []
@@ -245,15 +292,21 @@ class BedrockService:
                 label = self._label_for_uri(uri)
                 if label and label not in seen:
                     seen.add(label)
-                    sources.append({"source": label})
+                    sources.append(
+                        {"source": label, "s3_key": self.s3_key_for_uri(uri)}
+                    )
         return sources
 
     @staticmethod
     def _label_for_uri(uri: str) -> str:
         """
-        Map an S3 URI (e.g. s3://bucket/data/<uuid>__report.pdf) to a friendly
-        label: the original filename from uploaded_documents, or a basename
-        fallback with any ``<uuid>__`` upload prefix stripped.
+        Map an S3 URI (e.g. s3://bucket/data/report.pdf) to a friendly
+        label for display in chat citations.
+
+        New uploads use a clean key (``<prefix><filename>``) so the basename
+        IS the original filename.  For backward compatibility we still strip
+        any legacy ``<uuid>__`` prefix and fall back to the upload-table
+        display name if one was recorded.
         """
         # Strip the "s3://<bucket>/" prefix to recover the object key.
         key = uri
@@ -261,12 +314,21 @@ class BedrockService:
             without_scheme = uri[len("s3://"):]
             _, _, key = without_scheme.partition("/")
 
-        label = get_display_name(key)
-        if label:
-            return label
-
         basename = key.rsplit("/", 1)[-1]
+
+        # Backward-compat: strip legacy <uuid-hex>__ prefix if present.
         prefix, sep, remainder = basename.partition("__")
         if sep and prefix and all(c in "0123456789abcdef" for c in prefix.lower()):
             return remainder
-        return basename
+
+        # Fall back to a recorded display name (legacy uploads), else basename.
+        return get_display_name(key) or basename
+
+    @staticmethod
+    def s3_key_for_uri(uri: str) -> str:
+        """Return the object key portion of an ``s3://bucket/key`` URI."""
+        if uri.startswith("s3://"):
+            without_scheme = uri[len("s3://"):]
+            _, _, key = without_scheme.partition("/")
+            return key
+        return uri
