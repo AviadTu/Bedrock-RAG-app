@@ -134,8 +134,11 @@ class ChatService:
         # name?" while still grounding document answers in the KB.
         augmented_query = self._build_augmented_query(session_id, user_message)
 
+        bedrock_query = f"ענה בקצרה ובאופן ממוקד,בעברית.\n\n{user_message}"
+
         result = self._bedrock.retrieve_and_generate(
-            query=user_message, session_id=bedrock_sid
+        query=bedrock_query,
+        session_id=bedrock_sid
         )
 
         # Remember the Bedrock session id for the next turn in this tab.
