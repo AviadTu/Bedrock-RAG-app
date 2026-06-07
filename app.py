@@ -278,7 +278,7 @@ def download_document():
     display_name = _display_name_for_key(s3_key)
     ascii_fallback = display_name.encode("ascii", "ignore").decode("ascii") or "document"
     disposition = (
-        f'attachment; filename="{ascii_fallback}"; '
+        f'inline; filename="{ascii_fallback}"; '
         f"filename*=UTF-8''{quote(display_name, safe='')}"
     )
 
