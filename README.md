@@ -104,7 +104,7 @@ Open `http://localhost:5000`.
 | `FLASK_SECRET_KEY` | ✅ | — | Flask session signing key |
 | `BEDROCK_KNOWLEDGE_BASE_ID` | ✅ | — | Existing Knowledge Base ID |
 | `BEDROCK_DATA_SOURCE_ID` | ✅ | — | KB S3 data-source ID |
-| `BEDROCK_MODEL_ID` | ✗ | `anthropic.claude-haiku-4-5-20251001-v1:0` | Generation model |
+| `BEDROCK_MODEL_ID` | ✗ | `anthropic.claude-sonnet-4-6` | Generation model |
 | `BEDROCK_MODEL_ARN` | ✗ | built from region + model id | Full model ARN override |
 | `AWS_REGION` | ✗ | `us-east-1` | AWS region |
 | `S3_BUCKET` | ✗ | `oz-private-aviadt` | Upload bucket |
