@@ -6,7 +6,7 @@ service, and the SQLite persistence layer.
 
 Responsibilities
   1. Resolve the Bedrock conversation session for the current browser session.
-  2. Ask the Knowledge Base (RetrieveAndGenerate) for an answer.
+  2. Ask the Bedrock Agent (invoke_agent) for an answer.
   3. Persist both the user message and the assistant response to SQLite for
      history display.
   4. Return a clean response payload to the Flask route.
@@ -19,7 +19,6 @@ feeding context back to the model.
 from __future__ import annotations
 
 import re
-import threading
 
 from database.models import clear_session, get_history, save_message
 from services.bedrock_service import BedrockService
@@ -34,13 +33,10 @@ _HISTORY_MAX_CHARS    = 500   # per-message cap to keep the prompt bounded
 # ─────────────────────────────────────────────────────────────────────
 # Local conversation-memory patterns
 #
-# Bedrock RetrieveAndGenerate has no conversation-history placeholder
-# in its prompt template, so even when we prepend the prior turns to
-# the user's query, the model frequently replies with "I am unable to
-# assist" for trivial self-referential questions ("what's my name?",
-# "what did I just ask?").  For that narrow class of questions we
-# answer locally from SQLite instead of calling Bedrock at all.
-# Document-grounded questions are untouched and still go to the KB.
+# For trivial self-referential questions ("what's my name?",
+# "what did I just ask?") we answer locally from SQLite to avoid an
+# unnecessary round-trip to the Bedrock Agent.
+# Document-grounded questions yield no match here and still go to the Agent.
 # ─────────────────────────────────────────────────────────────────────
 
 # Trailing/closing punctuation that should not affect intent detection.
@@ -84,8 +80,6 @@ class ChatService:
 
     def __init__(self, bedrock_service: BedrockService) -> None:
         self._bedrock = bedrock_service
-        self._sessions: dict[str, str] = {}   # browser_sid → bedrock_sid
-        self._sessions_lock = threading.Lock()
 
     # ─────────────────────────────────────────────────────────────────
     # Chat
@@ -108,13 +102,10 @@ class ChatService:
         }
         """
         # ── Local conversation-memory shortcut ───────────────────────
-        # Try to answer trivial self-referential questions ("what's my
-        # name?", "what did I just ask?") directly from SQLite so we
-        # don't depend on Bedrock RetrieveAndGenerate – which provably
-        # ignores the augmented history and replies "Sorry, I am unable
-        # to assist" for this class of questions.  Document-grounded
-        # questions yield no match here and fall through to Bedrock,
-        # preserving existing RAG behaviour.
+        # Answer trivial self-referential questions ("what's my name?",
+        # "what did I just ask?") directly from SQLite to skip a round-
+        # trip to the Bedrock Agent.  Document-grounded questions yield
+        # no match here and fall through to invoke_agent as normal.
         local_answer = self._try_local_memory_answer(session_id, user_message)
         if local_answer is not None:
             save_message(session_id, role="user", content=user_message)
@@ -123,29 +114,12 @@ class ChatService:
             )
             return {"answer": local_answer, "context": []}
 
-        with self._sessions_lock:
-            bedrock_sid = self._sessions.get(session_id)
+        augmented_query = self._build_augmented_query(session_id, user_message)  # noqa: F841 (reserved for future use)
 
-        # Build the query sent to Bedrock by prepending a short, bounded
-        # transcript of the most recent raw turns from SQLite.  Bedrock's
-        # RetrieveAndGenerate prompt template has no conversation-history
-        # placeholder of its own, so doing this here is what lets the
-        # model answer self-referential follow-ups such as "what's my
-        # name?" while still grounding document answers in the KB.
-        augmented_query = self._build_augmented_query(session_id, user_message)
-
-        bedrock_query = f"ענה בקצרה ובאופן ממוקד,בעברית.\n\n{user_message}"
-
-        result = self._bedrock.retrieve_and_generate(
-        query=bedrock_query,
-        session_id=bedrock_sid
+        result = self._bedrock.invoke_agent(
+            query=user_message,
+            session_id=session_id,
         )
-
-        # Remember the Bedrock session id for the next turn in this tab.
-        new_sid = result.get("session_id")
-        if new_sid:
-            with self._sessions_lock:
-                self._sessions[session_id] = new_sid
 
         # Persist ONLY the raw user message and the raw assistant answer.
         # The augmented prompt is never written back, so the next turn
@@ -279,8 +253,6 @@ class ChatService:
         forget the Bedrock session so the next turn starts a fresh conversation.
         """
         clear_session(session_id)
-        with self._sessions_lock:
-            self._sessions.pop(session_id, None)
 
     # ─────────────────────────────────────────────────────────────────
     # Engine status

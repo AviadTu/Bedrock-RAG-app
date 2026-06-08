@@ -16,6 +16,7 @@ the existing object (S3's PutObject is by-design idempotent on key).
 
 from __future__ import annotations
 
+import io
 import uuid
 
 from werkzeug.datastructures import FileStorage
@@ -115,16 +116,29 @@ def save_upload(file_storage: FileStorage) -> tuple[str, str]:
 
     from storage.s3_client import get_s3_client
 
+    # TXT files created on Hebrew-locale Windows are often Windows-1255.
+    # Bedrock assumes UTF-8 when no charset is declared, turning Hebrew into
+    # gibberish.  Normalise to UTF-8 before uploading; PDF/DOCX are self-
+    # describing binary formats and are streamed unchanged.
+    if _extension(original_filename) == "txt":
+        raw = file_storage.stream.read()
+        try:
+            text = raw.decode("utf-8")
+        except UnicodeDecodeError:
+            text = raw.decode("windows-1255", errors="replace")
+        fileobj: object = io.BytesIO(text.encode("utf-8"))
+        content_type = "text/plain; charset=utf-8"
+    else:
+        fileobj = file_storage.stream
+        content_type = file_storage.mimetype or "application/octet-stream"
+
     client = get_s3_client()
     try:
-        # Stream directly from the request to S3 – no temp file on disk.
         client.upload_fileobj(
-            Fileobj=file_storage.stream,
+            Fileobj=fileobj,
             Bucket=settings.S3_BUCKET,
             Key=s3_key,
-            ExtraArgs={
-                "ContentType": file_storage.mimetype or "application/octet-stream"
-            },
+            ExtraArgs={"ContentType": content_type},
         )
     except (BotoCoreError, ClientError) as exc:
         raise RuntimeError(

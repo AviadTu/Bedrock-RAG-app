@@ -103,6 +103,18 @@ class _Settings:
         """
         return os.getenv("BEDROCK_SYSTEM_PROMPT", "").strip()
 
+    # ── AWS Bedrock Agent ────────────────────────────────────────────
+
+    @property
+    def BEDROCK_AGENT_ID(self) -> str:
+        """Agent ID for invoke_agent calls (e.g. ABCDE12345)."""
+        return _require("BEDROCK_AGENT_ID")
+
+    @property
+    def BEDROCK_AGENT_ALIAS_ID(self) -> str:
+        """Agent Alias ID for invoke_agent calls (e.g. TSTALIASID for the test alias)."""
+        return _require("BEDROCK_AGENT_ALIAS_ID")
+
     # ── Document storage ─────────────────────────────────────────────
     @property
     def AWS_REGION(self) -> str:

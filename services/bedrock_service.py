@@ -8,11 +8,11 @@ FAISS + Gemini).  Retrieval, embedding, the vector store, and answer
 generation are all managed by AWS Bedrock.  This module only:
 
   • starts and tracks Knowledge Base ingestion jobs (after uploads), and
-  • answers questions with RetrieveAndGenerate.
+  • answers questions via a Bedrock Agent (invoke_agent).
 
 Two boto3 clients are used:
   • bedrock-agent          → control plane (StartIngestionJob / GetIngestionJob)
-  • bedrock-agent-runtime  → data plane    (RetrieveAndGenerate)
+  • bedrock-agent-runtime  → data plane    (InvokeAgent; RetrieveAndGenerate kept for reference)
 
 Credentials come from the default AWS credential chain; only the region is
 read from config.settings.
@@ -265,6 +265,77 @@ class BedrockService:
             "context": sources,
             "session_id": new_session_id,
         }
+
+    # ─────────────────────────────────────────────────────────────────
+    # Invoke Agent (data plane)
+    # ─────────────────────────────────────────────────────────────────
+
+    def invoke_agent(self, query: str, session_id: str) -> dict:
+        """
+        Answer a question using a Bedrock Agent.
+
+        The ``session_id`` (browser UUID) is passed directly as the Agent
+        sessionId so Bedrock can maintain conversational continuity across
+        turns without a separate in-memory mapping.
+
+        Returns
+        -------
+        {
+            "answer":  str,
+            "context": [],   # TODO: extract citations from agent trace events
+        }
+
+        Raises
+        ------
+        EnvironmentError  if BEDROCK_AGENT_ID or BEDROCK_AGENT_ALIAS_ID are
+                          missing from the environment.
+        RuntimeError      if the AWS call fails or returns no answer chunks.
+        """
+        from botocore.exceptions import BotoCoreError, ClientError
+
+        agent_id = settings.BEDROCK_AGENT_ID
+        agent_alias_id = settings.BEDROCK_AGENT_ALIAS_ID
+
+        try:
+            resp = self._runtime().invoke_agent(
+                agentId=agent_id,
+                agentAliasId=agent_alias_id,
+                sessionId=session_id,
+                inputText=query,
+            )
+        except (BotoCoreError, ClientError) as exc:
+            _log(f"InvokeAgent failed: {exc}")
+            raise RuntimeError(f"Bedrock Agent query failed: {exc}") from exc
+
+        # The response carries an EventStream under 'completion'.
+        # Iterate over it, collect text chunks and per-chunk citations.
+        chunks: list[str] = []
+        all_citations: list[dict] = []
+        try:
+            for event in resp.get("completion", []):
+                if "chunk" in event:
+                    chunk = event["chunk"]
+
+                    chunk_bytes = chunk.get("bytes", b"")
+                    if chunk_bytes:
+                        chunks.append(chunk_bytes.decode("utf-8"))
+
+                    attribution = chunk.get("attribution", {}) or {}
+                    citations = attribution.get("citations", []) or []
+                    all_citations.extend(citations)
+        except (BotoCoreError, ClientError) as exc:
+            _log(f"InvokeAgent stream error: {exc}")
+            raise RuntimeError(f"Bedrock Agent stream error: {exc}") from exc
+
+        answer = "".join(chunks).strip()
+        if not answer:
+            raise RuntimeError(
+                "Bedrock Agent returned no answer chunks. "
+                "Check agentId, agentAliasId, and Agent configuration in AWS."
+            )
+
+        sources = self._extract_sources(all_citations)
+        return {"answer": answer, "context": sources}
 
     # ─────────────────────────────────────────────────────────────────
     # Citation → source-label mapping

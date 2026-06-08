@@ -6,7 +6,7 @@ Flask application entry point.
 Architecture (Phase 2)
   Retrieval and generation are handled entirely by an AWS Bedrock Knowledge
   Base.  Uploaded files go to S3 and a Bedrock ingestion job indexes them;
-  chat answers come from Bedrock RetrieveAndGenerate.  There is no local
+  chat answers come from a Bedrock Agent (invoke_agent).  There is no local
   embedding / FAISS index, so the server is ready to serve immediately.
 
 Startup sequence

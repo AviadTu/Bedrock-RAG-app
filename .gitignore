@@ -45,3 +45,18 @@ desktop.ini
 .idea/
 *.swp
 *.swo
+
+# Runtime
+logs/
+*.log
+
+# Flask session/cache
+instance/
+
+# Environment files
+.env.*
+!.env.example
+
+# Python coverage
+.coverage
+htmlcov/
