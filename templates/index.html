@@ -233,6 +233,7 @@
   .md-body li             { margin-bottom: 0.2rem; }
   .md-body ol             { list-style-type: decimal; }
   .md-body ul             { list-style-type: disc; }
+  .md-body a              { font-weight: 700; text-decoration: underline; cursor: pointer; color: #800020; }
 
   /* Source link – clickable filename chip */
   .source-link {
@@ -581,9 +582,10 @@ function formatText(raw) {
     const clean = DOMPurify.sanitize(html, {
       ALLOWED_TAGS: [
         'p','br','strong','em','b','i','ul','ol','li',
-        'h1','h2','h3','h4','h5','h6','blockquote','code','pre','hr','span'
+        'h1','h2','h3','h4','h5','h6','blockquote','code','pre','hr','span',
+        'a'
       ],
-      ALLOWED_ATTR: [],          // no attributes needed; strips onclick etc.
+      ALLOWED_ATTR: ['href', 'target', 'rel'],
       FORBID_TAGS: ['script','style','iframe','object','embed'],
     });
     return `<div class="md-body">${clean}</div>`;
@@ -1068,6 +1070,16 @@ function appendAssistantBubble(text, sources) {
 
   // ── 1. Markdown-rendered answer body ─────────────────────────────
   panel.innerHTML = formatText(text);
+
+  // Style only PDF download links; leave all other hyperlinks unchanged.
+  panel.querySelectorAll('a').forEach(a => {
+    const href = a.getAttribute('href') || '';
+    if (href.includes('/documents/download') || href.includes('.pdf')) {
+      a.textContent = 'מערך מעודכן להורדה📄';
+      a.setAttribute('target', '_blank');
+      a.setAttribute('rel', 'noopener noreferrer');
+    }
+  });
 
   // ── 2. Sources section (appended via DOM – never through a parser) ─
   if (sources && sources.length) {
