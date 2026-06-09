@@ -332,6 +332,11 @@ async function newChat() {
     await fetchWithSession("/clear", { method: "POST" });
   } catch (_) { /* best-effort */ }
 
+  /* Reset the Bedrock Agent session so the next message starts a fresh
+     conversation in AWS, not a continuation of the previous one. */
+  const newSid = generateUuid();
+  sessionStorage.setItem(SESSION_STORAGE_KEY, newSid);
+
   /* Clear the message area (keep the welcome card) */
   messagesEl.innerHTML = "";
   if (welcomeCard) {
