@@ -62,8 +62,9 @@ desktop.ini
 # ── Docker files themselves ──────────────────────────────────────────
 docker-compose*.yml
 
-# ── Documentation that is not needed at runtime ──────────────────────
+# ── Documentation and assets not needed at runtime ──────────────────
 README.md
+screenshots/
 
 # ── Cursor / agent transcripts ───────────────────────────────────────
 terminals
