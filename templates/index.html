@@ -364,7 +364,7 @@
                 class="suggestion-chip bg-white/80 backdrop-blur border border-primary/10 px-4 py-2 rounded-full font-label-md text-label-md text-primary hover:bg-primary-fixed hover:border-primary/30 transition-all shadow-sm hover:shadow-md">
           📚 מצא נושאים שישפרו למידה בכיתה
         </button>
-        <button data-suggestion=" האם קיים אצלך שיעור בנושא "
+        <button data-suggestion=" האם קיים אצלך שיעור בנושא " data-insert-only="true"
                 class="suggestion-chip bg-white/80 backdrop-blur border border-primary/10 px-4 py-2 rounded-full font-label-md text-label-md text-primary hover:bg-primary-fixed hover:border-primary/30 transition-all shadow-sm hover:shadow-md">
           📝 האם קיים אצלך שיעור בנושא
         </button>
@@ -408,7 +408,7 @@
           aria-label="התראות" title="התראות" type="button">
     <span class="material-symbols-outlined">notifications</span>
   </button>
-  <div class="relative w-10 h-10 flex-shrink-0">
+  <div id="btn-profile" class="relative w-10 h-10 flex-shrink-0 cursor-pointer" role="button" tabindex="0" aria-label="פרטי משתמש" title="פרטי משתמש">
     <img alt="פרופיל" class="w-10 h-10 rounded-full object-cover ring-2 ring-white shadow-md"
          src="https://lh3.googleusercontent.com/aida-public/AB6AXuDbRg7qwR-OhSl2JhtA3TGsFnc1-ouYAcK1d7YSQ6Zw7IEj35il_fnLiq-BgeYLnvaXhViHqXdWoJQO0tYxZuhM8bWVM5SfMr-yP3vilo-B78h6NVCrKhunvQ0-O0ZcIwVpWSJ-RlCJ1qYFra3LmO1Zw5EHqGpQi8_Xib5rhSP2FczrYPCJUbbAVpn7C31JfRwExljWDLlEDS-BTtxjnJrRm_MlfoPxbPlvoOHcAcbgYB-vF9eS7086HQ3Xvtb3Hx_8OJce7W4MbgY"/>
     <div class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
@@ -455,10 +455,9 @@
 
   <!-- Footer Actions -->
   <div class="mt-auto flex flex-col gap-3 pt-5 border-t border-primary/10 rtl flex-shrink-0">
-    <!-- Help is UI-only; no backend support currently -->
-    <button class="flex items-center gap-3 p-3 text-on-surface-variant hover:bg-primary-fixed hover:text-primary rounded-xl transition-all font-medium"
-            title="עזרה ותמיכה (בקרוב)" disabled
-            style="opacity:.6;cursor:default;">
+    <button id="btn-help"
+            class="flex items-center gap-3 p-3 text-on-surface-variant hover:bg-primary-fixed hover:text-primary rounded-xl transition-all font-medium"
+            title="עזרה ותמיכה" type="button">
       <span class="material-symbols-outlined">help_center</span>
       <span class="font-label-md">עזרה ותמיכה</span>
     </button>
@@ -495,6 +494,68 @@
       <button id="confirm-ok"
               class="px-5 py-2.5 rounded-xl font-label-md bg-error text-on-error hover:brightness-110 transition-all"
               type="button">מחק</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     HELP MODAL
+     ══════════════════════════════════════════════════════════ -->
+<div id="help-modal"
+     class="hidden fixed inset-0 z-[300] flex items-center justify-center bg-black/30 backdrop-blur-sm"
+     role="dialog" aria-modal="true" aria-labelledby="help-modal-title">
+  <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 border border-primary/10 rtl">
+    <div class="flex items-center justify-between mb-5">
+      <h3 id="help-modal-title" class="font-headline-md text-headline-md text-primary">עזרה ותמיכה</h3>
+      <button id="help-close"
+              class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-dim text-on-surface-variant transition-colors"
+              type="button" aria-label="סגור">
+        <span class="material-symbols-outlined text-[20px]">close</span>
+      </button>
+    </div>
+    <div class="text-on-surface font-label-md space-y-4 leading-relaxed">
+      <p>ברוכים הבאים לעוזר חינוכי חכם.</p>
+      <div>
+        <p class="font-semibold mb-1">המערכת מאפשרת:</p>
+        <ul class="space-y-1 pr-2">
+          <li>• חיפוש ואיתור מערכי שיעור מבסיס הידע.</li>
+          <li>• הצגת אפשרויות למערכי שיעור בנושא מבוקש.</li>
+          <li>• התאמת מערכי שיעור לפי דרישות המשתמש.</li>
+          <li>• יצירת קובצי PDF מוכנים להורדה.</li>
+          <li>• שליחת קישורי הורדה למייל.</li>
+        </ul>
+      </div>
+      <div>
+        <p class="font-semibold mb-1">דוגמאות לשאלות:</p>
+        <ul class="space-y-1 pr-2">
+          <li>• מצא לי מערך שיעור בנושא כיבוד הורים.</li>
+          <li>• תן לי רעיונות לפעילות בנושא אחריות אישית.</li>
+          <li>• צור PDF למערך שבחרתי.</li>
+          <li>• שלח לי את המערך למייל.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     PROFILE MODAL
+     ══════════════════════════════════════════════════════════ -->
+<div id="profile-modal"
+     class="hidden fixed inset-0 z-[300] flex items-center justify-center bg-black/30 backdrop-blur-sm"
+     role="dialog" aria-modal="true" aria-labelledby="profile-modal-title">
+  <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full mx-4 border border-primary/10 rtl">
+    <div class="flex items-center justify-between mb-5">
+      <h3 id="profile-modal-title" class="font-headline-md text-headline-md text-primary">פרטי משתמש</h3>
+      <button id="profile-close"
+              class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-dim text-on-surface-variant transition-colors"
+              type="button" aria-label="סגור">
+        <span class="material-symbols-outlined text-[20px]">close</span>
+      </button>
+    </div>
+    <div class="text-on-surface font-label-md space-y-2 leading-relaxed">
+      <p class="font-semibold text-lg">תאיר תורג'מן</p>
+      <a href="mailto:aviadq@gmail.com" class="text-primary hover:underline">aviadq@gmail.com</a>
     </div>
   </div>
 </div>
@@ -1251,6 +1312,29 @@ document.addEventListener('keydown', e => {
 });
 
 // ═══════════════════════════════════════════════════════════════
+// HELP MODAL
+// ═══════════════════════════════════════════════════════════════
+const helpModal = document.getElementById('help-modal');
+function openHelpModal()  { helpModal?.classList.remove('hidden'); }
+function closeHelpModal() { helpModal?.classList.add('hidden'); }
+document.getElementById('btn-help')?.addEventListener('click', openHelpModal);
+document.getElementById('help-close')?.addEventListener('click', closeHelpModal);
+helpModal?.addEventListener('click', e => { if (e.target === helpModal) closeHelpModal(); });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && helpModal && !helpModal.classList.contains('hidden')) closeHelpModal();
+});
+
+// ═══════════════════════════════════════════════════════════════
+// PROFILE MODAL
+// ═══════════════════════════════════════════════════════════════
+const profileModal = document.getElementById('profile-modal');
+function openProfileModal()  { profileModal?.classList.remove('hidden'); }
+function closeProfileModal() { profileModal?.classList.add('hidden'); }
+document.getElementById('btn-profile')?.addEventListener('click', openProfileModal);
+document.getElementById('profile-close')?.addEventListener('click', closeProfileModal);
+profileModal?.addEventListener('click', e => { if (e.target === profileModal) closeProfileModal(); });
+
+// ═══════════════════════════════════════════════════════════════
 // DRAG & DROP
 // ═══════════════════════════════════════════════════════════════
 function setupDropZone() {
@@ -1407,7 +1491,13 @@ document.getElementById('btn-logout')?.addEventListener('click', () => {
 
 // Suggestion chips
 document.querySelectorAll('.suggestion-chip').forEach(btn => {
-  btn.addEventListener('click', () => sendMessage(btn.dataset.suggestion));
+  btn.addEventListener('click', () => {
+    if (btn.dataset.insertOnly) {
+      if (chatInput) { chatInput.value = btn.dataset.suggestion; chatInput.focus(); autoGrowInput(); }
+    } else {
+      sendMessage(btn.dataset.suggestion);
+    }
+  });
 });
 
 // Subtle press animation on all buttons
