@@ -245,6 +245,42 @@
     background-color: #fff1f2 !important;
     color: #800020 !important;
   }
+  .doc-item:hover,
+  .doc-item:active,
+  .doc-item:focus-within {
+    background-color: #fff1f2 !important;
+  }
+  .doc-item .doc-link:hover {
+    background-color: transparent !important;
+  }
+  .doc-item .delete-btn {
+    background-color: transparent;
+  }
+  .doc-item:hover .delete-btn,
+  .doc-item:active .delete-btn,
+  .doc-item:focus-within .delete-btn {
+    background-color: transparent !important;
+  }
+  .doc-item .delete-btn:hover {
+    background-color: #ffe4e6 !important;
+  }
+  .history-item:hover,
+  .history-item:active,
+  .history-item:focus-within {
+    background-color: #fff1f2 !important;
+  }
+  .history-item .history-action-btn {
+    background-color: transparent;
+  }
+  .history-item:hover .history-action-btn,
+  .history-item:active .history-action-btn,
+  .history-item:focus-within .history-action-btn {
+    background-color: transparent !important;
+  }
+  .history-item .history-delete-btn:hover,
+  .history-item .history-edit-btn:hover {
+    background-color: #ffe4e6 !important;
+  }
   /* Mirror the existing Material send icon so the arrow tip points left
      while preserving its exact visual style (no icon swap).
      `inline-block` keeps `vertical-align: middle` (set on
@@ -982,8 +1018,8 @@ function renderSessionList() {
     const isActive  = session.id === appState.activeId;
     const isRename  = renameActiveId === session.id;
     const wrapClass = isActive
-      ? 'active-nav-item p-3.5 flex items-center justify-between group cursor-pointer shadow-md border border-primary/10 transition-all'
-      : 'text-on-surface-variant hover:bg-primary-fixed/50 p-3.5 rounded-xl flex items-center justify-between group cursor-pointer transition-all';
+      ? 'history-item active-nav-item p-3.5 flex items-center justify-between group cursor-pointer shadow-md border border-primary/10 transition-all'
+      : 'history-item text-on-surface-variant hover:bg-primary-fixed/50 p-3.5 rounded-xl flex items-center justify-between group cursor-pointer transition-all';
     const icon = isActive ? 'chat_bubble' : 'forum';
 
     const titleHtml = isRename
@@ -996,17 +1032,17 @@ function renderSessionList() {
       : `<span class="font-label-md text-label-md truncate font-${isActive ? 'semibold' : 'medium'}">${escHtml(session.title)}</span>`;
 
     const actionBtns = isActive
-      ? `<button class="p-1.5 hover:bg-white/40 rounded-lg text-primary/70 flex-shrink-0"
+      ? `<button class="history-action-btn history-edit-btn p-1.5 rounded-lg text-primary/70 flex-shrink-0"
                data-session-edit="${escHtml(session.id)}"
                title="שנה שם" aria-label="שנה שם שיחה">
            <span class="material-symbols-outlined text-[18px]">edit</span>
          </button>
-         <button class="p-1.5 hover:bg-red-50 text-error rounded-lg flex-shrink-0"
+         <button class="history-action-btn history-delete-btn p-1.5 hover:bg-red-50 text-error rounded-lg flex-shrink-0"
                data-session-delete="${escHtml(session.id)}"
                title="מחק שיחה" aria-label="מחק שיחה">
            <span class="material-symbols-outlined text-[18px]">delete</span>
          </button>`
-      : `<button class="p-1.5 hover:bg-red-50 text-error rounded-lg flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+      : `<button class="history-action-btn history-delete-btn p-1.5 hover:bg-red-50 text-error rounded-lg flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
                data-session-delete="${escHtml(session.id)}"
                title="מחק שיחה" aria-label="מחק שיחה">
            <span class="material-symbols-outlined text-[18px]">delete</span>
@@ -1071,16 +1107,16 @@ function renderDocumentList(docs) {
 
     const downloadHref = `/documents/download?s3_key=${encodeURIComponent(doc.s3_key)}`;
     return `
-      <div class="glass-panel p-4 rounded-xl flex items-center justify-between group shadow-sm hover:shadow-md transition-all border-white/50">
+      <div class="doc-item glass-panel p-4 rounded-xl flex items-center justify-between group shadow-sm hover:shadow-md transition-all border-white/50">
         <a href="${downloadHref}" target="_blank" rel="noopener"
-           class="source-link flex items-center gap-3 overflow-hidden flex-1 min-w-0"
+           class="source-link doc-link flex items-center gap-3 overflow-hidden flex-1 min-w-0"
            title="הורד את ${escHtml(doc.original_filename)}">
           <div class="w-10 h-10 rounded-lg ${color} flex items-center justify-center flex-shrink-0">
             <span class="material-symbols-outlined">${icon}</span>
           </div>
           <span class="font-label-md text-label-md font-medium truncate text-on-surface">${escHtml(doc.original_filename)}</span>
         </a>
-        <button class="p-2 hover:bg-red-50 text-error rounded-lg flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity ms-1"
+        <button class="delete-btn p-2 hover:bg-red-50 text-error rounded-lg flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity ms-1"
                 data-doc-delete="${escHtml(doc.s3_key)}"
                 data-doc-name="${escHtml(doc.original_filename)}"
                 title="מחק מסמך" aria-label="מחק ${escHtml(doc.original_filename)}">
