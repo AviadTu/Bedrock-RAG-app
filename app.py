@@ -126,6 +126,7 @@ def chat():
         return jsonify({"error": "Message must not be empty."}), 400
 
     session_id = _get_session_id()
+    print(f"[app] /chat session_id={session_id}", flush=True)
 
     try:
         result = chat_service.chat(session_id, user_message)

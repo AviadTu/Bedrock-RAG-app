@@ -296,14 +296,35 @@ class BedrockService:
         agent_id = settings.BEDROCK_AGENT_ID
         agent_alias_id = settings.BEDROCK_AGENT_ALIAS_ID
 
-        try:
-            resp = self._runtime().invoke_agent(
+        def _call() -> dict:
+            _log(f"InvokeAgent request session_id={session_id}")
+            return self._runtime().invoke_agent(
                 agentId=agent_id,
                 agentAliasId=agent_alias_id,
                 sessionId=session_id,
                 inputText=query,
             )
-        except (BotoCoreError, ClientError) as exc:
+
+        try:
+            resp = _call()
+        except ClientError as exc:
+            code = exc.response.get("Error", {}).get("Code", "")
+            # Retry once with the same session id if Bedrock reports session-state issues.
+            if code in ("ValidationException", "ConflictException", "ResourceNotFoundException"):
+                _log(
+                    f"InvokeAgent session_id={session_id} rejected ({code}); retrying once."
+                )
+                try:
+                    resp = _call()
+                except (BotoCoreError, ClientError) as retry_exc:
+                    _log(f"InvokeAgent retry failed: {retry_exc}")
+                    raise RuntimeError(
+                        f"Bedrock Agent query failed: {retry_exc}"
+                    ) from retry_exc
+            else:
+                _log(f"InvokeAgent failed: {exc}")
+                raise RuntimeError(f"Bedrock Agent query failed: {exc}") from exc
+        except BotoCoreError as exc:
             _log(f"InvokeAgent failed: {exc}")
             raise RuntimeError(f"Bedrock Agent query failed: {exc}") from exc
 
