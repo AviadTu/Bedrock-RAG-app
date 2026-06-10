@@ -6,6 +6,14 @@ to teacher requirements, generates lesson-plan PDFs, and delivers them by email.
 
 ---
 
+## Live Demo
+
+The application is currently deployed on Amazon EC2 and available at:
+
+**http://44.222.79.3:5000/**
+
+---
+
 ## Architecture
 
 ```
@@ -345,4 +353,4 @@ logs:PutLogEvents      (Lambda execution role)
 - **Guardrails**: Bedrock Guardrails policies must be configured and associated with the Agent in the AWS Console before they take effect.
 - **Knowledge Base ingestion**: Newly uploaded documents are not immediately searchable. Ingestion typically takes 30–120 seconds depending on document count and size.
 - **SQLite persistence**: The SQLite database lives inside the container. Chat history is lost when the container is removed. Mount a volume or use an external database for persistent history.
-- **Session continuity**: Each browser tab uses an independent UUID as the Bedrock Agent `sessionId`. Closing a tab and reopening the site starts a new conversation. Bedrock Agent sessions expire after 25 minutes of inactivity.
+- **Session continuity**: Each browser tab uses an independent UUID as the Bedrock Agent `sessionId`. Closing a tab and reopening the site starts a new conversation. Bedrock Agent sessions may expire after a period of inactivity, depending on the Agent configuration.
